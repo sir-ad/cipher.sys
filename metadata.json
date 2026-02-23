@@ -1,0 +1,5 @@
+{
+  "name": "Vanish",
+  "description": "The self-destructing to-do app. Max 5 tasks. 7-day expiry. App self-destructs when completed.",
+  "requestFramePermissions": []
+}
