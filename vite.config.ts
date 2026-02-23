@@ -5,7 +5,9 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
-      base: '/cipher.sys/',
+      // Use relative asset paths so production bundles resolve on GitHub Pages
+      // even if the repository path/casing changes.
+      base: './',
       server: {
         port: 3000,
         host: '0.0.0.0',
