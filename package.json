@@ -1,6 +1,6 @@
 {
   "name": "@cipher.sys/terminal",
-  "version": "4.1.1",
+  "version": "4.1.2",
   "description": "Autonomous Covert Terminal. Max 5 directives. Scorched earth protocol. V4 Phoenix.",
   "main": "server.js",
   "bin": {
