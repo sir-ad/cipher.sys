@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#000000" />
+  <title>CIPHER_TERMINAL</title>
+  <link rel="manifest" href="/cipher.sys/assets/manifest-yX6wvlOK.json" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', '"Liberation Mono"', '"Courier New"', 'monospace'],
+            sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+          },
+          colors: {
+            background: '#000000',
+            surface: '#050505',
+            brand: '#ff0033', // Stark harsh red
+          },
+          animation: {
+            'flicker': 'flicker 0.15s infinite',
+            'scanline': 'scanline 8s linear infinite',
+            'glitch': 'glitch 1s linear infinite',
+            'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          },
+          keyframes: {
+            flicker: {
+              '0%': { opacity: '0.97' },
+              '100%': { opacity: '1' },
+            },
+            scanline: {
+              '0%': { transform: 'translateY(-100%)' },
+              '100%': { transform: 'translateY(100vh)' },
+            },
+            glitch: {
+              '2%, 64%': { transform: 'translate(2px, 0) skew(0deg)' },
+              '4%, 60%': { transform: 'translate(-2px, 0) skew(0deg)' },
+              '62%': { transform: 'translate(0, 0) skew(5deg)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #000000;
+      color: #d1d5db;
+      overflow-x: hidden;
+    }
+
+    /* Intense CRT / Vignette Overlay */
+    body::before {
+      content: " ";
+      display: block;
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, transparent 40%, #000000 100%),
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%);
+      background-size: 100% 100%, 100% 4px;
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    .scanline-effect {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 15px;
+      background: rgba(255, 0, 51, 0.05);
+      opacity: 0.6;
+      animation: scanline 10s linear infinite;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* Data Encryption Text Effect */
+    .encrypted-text {
+      font-family: monospace;
+      letter-spacing: 0.2em;
+      position: relative;
+    }
+
+    .glitch-hover:hover {
+      animation: glitch 0.2s linear infinite;
+      color: #ff0033;
+      text-shadow: 2px 0 blue, -2px 0 red;
+    }
+
+    ::-webkit-scrollbar {
+      width: 2px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #000;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #333;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #ff0033;
+    }
+
+    /* Dynamic Typography Scaling */
+    h1 {
+      font-size: clamp(2rem, 6vw, 6rem);
+      line-height: 1;
+      letter-spacing: -0.05em;
+    }
+
+    .text-fluid-base {
+      font-size: clamp(0.875rem, 1.5vw, 1.5rem);
+      line-height: 1.4;
+    }
+
+    .text-fluid-sm {
+      font-size: clamp(0.65rem, 1vw, 1.1rem);
+    }
+
+    .text-fluid-lg {
+      font-size: clamp(3rem, 10vw, 12rem);
+      line-height: 0.85;
+    }
+  </style>
+  <script type="module" crossorigin src="/cipher.sys/assets/index-BqCneq9n.js"></script>
+  <link rel="stylesheet" crossorigin href="/cipher.sys/assets/index-bVgyntT-.css">
+</head>
+
+<body class="antialiased min-h-screen flex flex-col selection:bg-brand selection:text-black animate-flicker">
+  <div class="scanline-effect"></div>
+  <div id="root" class="flex-grow flex flex-col relative z-10 w-full mx-auto font-sans"></div>
+</body>
+
+</html>

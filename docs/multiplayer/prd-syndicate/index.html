@@ -1,0 +1,1432 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Declassified Field Manual for Overwatch Ghost Protocol">
+      
+      
+      
+        <link rel="canonical" href="https://sir-ad.github.io/cipher.sys/multiplayer/prd-syndicate/">
+      
+      
+        <link rel="prev" href="../../briefing/rules/">
+      
+      
+        <link rel="next" href="../rules-of-engagement/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Vision & PRD - CIPHER.SYS</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono:300,300i,400,400i,700,700i%7CFira+Code:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto Mono";--md-code-font:"Fira Code"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/cipher-terminal.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="custom-red">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#classified-prd-syndicate-protocol" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="CIPHER.SYS" class="md-header__button md-logo" aria-label="CIPHER.SYS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            CIPHER.SYS
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Vision & PRD
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="custom-red"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/sir-ad/cipher.sys" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    sir-ad/cipher.sys
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  UPLINK_ESTABLISHED
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../briefing/boot-sequence/" class="md-tabs__link">
+          
+  
+  
+  OPERATIVE BRIEFING
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  SYNDICATE PROTOCOL (MULTIPLAYER)
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/daemon/" class="md-tabs__link">
+          
+  
+  
+  ARCHITECTURE
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../website-prd/" class="md-tabs__link">
+          
+  
+  
+  PUBLIC UPLINK
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="CIPHER.SYS" class="md-nav__button md-logo" aria-label="CIPHER.SYS" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    CIPHER.SYS
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/sir-ad/cipher.sys" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    sir-ad/cipher.sys
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UPLINK_ESTABLISHED
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OPERATIVE BRIEFING
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    OPERATIVE BRIEFING
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../briefing/boot-sequence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Boot Sequence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../briefing/rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rules of Engagement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SYNDICATE PROTOCOL (MULTIPLAYER)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    SYNDICATE PROTOCOL (MULTIPLAYER)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vision & PRD
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vision & PRD
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-vision-executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. VISION &amp; EXECUTIVE SUMMARY
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-problem-statement-psychology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. PROBLEM STATEMENT &amp; PSYCHOLOGY
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-core-multiplayer-mechanics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. CORE MULTIPLAYER MECHANICS
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. CORE MULTIPLAYER MECHANICS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-the-squad-radar-discovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A. The Squad Radar (Discovery)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#b-the-cross-node-contract-delegation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        B. The Cross-Node Contract (Delegation)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#c-the-two-key-turn-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C. The Two-Key Turn (Verification)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#d-mutually-assured-destruction-mad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        D. Mutually Assured Destruction (M.A.D.)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-target-audience" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. TARGET AUDIENCE
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-non-goals-what-we-are-not-building" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. NON-GOALS (WHAT WE ARE NOT BUILDING)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-launch-phases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. LAUNCH PHASES
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. LAUNCH PHASES">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-local-discovery-radar-v50" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 1: Local Discovery &amp; Radar (v5.0)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-directed-fire-v51" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 2: Directed Fire (v5.1)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-the-two-key-turn-v52" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 3: The Two-Key Turn (v5.2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-4-mad-engine-v53" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 4: M.A.D. Engine (v5.3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rules-of-engagement/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Squad Mechanics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-flows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UI & User Flows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../network-topology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Network Topology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ARCHITECTURE
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ARCHITECTURE
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/daemon/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Host Daemon
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/ai-handler/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI Interrogation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PUBLIC UPLINK
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    PUBLIC UPLINK
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../website-prd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Website PRD
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-vision-executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. VISION &amp; EXECUTIVE SUMMARY
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-problem-statement-psychology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. PROBLEM STATEMENT &amp; PSYCHOLOGY
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-core-multiplayer-mechanics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. CORE MULTIPLAYER MECHANICS
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. CORE MULTIPLAYER MECHANICS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-the-squad-radar-discovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A. The Squad Radar (Discovery)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#b-the-cross-node-contract-delegation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        B. The Cross-Node Contract (Delegation)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#c-the-two-key-turn-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C. The Two-Key Turn (Verification)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#d-mutually-assured-destruction-mad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        D. Mutually Assured Destruction (M.A.D.)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-target-audience" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. TARGET AUDIENCE
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-non-goals-what-we-are-not-building" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. NON-GOALS (WHAT WE ARE NOT BUILDING)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-launch-phases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. LAUNCH PHASES
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. LAUNCH PHASES">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-local-discovery-radar-v50" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 1: Local Discovery &amp; Radar (v5.0)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-directed-fire-v51" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 2: Directed Fire (v5.1)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-the-two-key-turn-v52" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 3: The Two-Key Turn (v5.2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-4-mad-engine-v53" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 4: M.A.D. Engine (v5.3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="classified-prd-syndicate-protocol">[!] CLASSIFIED PRD: SYNDICATE PROTOCOL</h1>
+<h2 id="1-vision-executive-summary">1. VISION &amp; EXECUTIVE SUMMARY</h2>
+<p>The current CIPHER.SYS architecture operates in <strong>LONE WOLF</strong> mode. It isolates the operative. However, high-functioning covert teams (startup founders, dev squads, study groups) require localized coordination without sacrificing our core anti-engagement philosophy. </p>
+<p><strong>SYNDICATE PROTOCOL</strong> is the "Multiplayer Mode" for CIPHER.SYS. It allows operatives connected to the same Local Command Node to discover each other, delegate cross-node directives, and engage in a cooperative productivity "survival game" built on the concept of <strong>Mutually Assured Destruction (M.A.D.)</strong>.</p>
+<p><strong>Tagline:</strong> <em>Productivity is no longer a solo survival horror. It is a tactical squad shooter.</em></p>
+<hr />
+<h2 id="2-problem-statement-psychology">2. PROBLEM STATEMENT &amp; PSYCHOLOGY</h2>
+<p>Standard team task managers (Jira, Asana, Trello) are broken due to "infinite backlog syndrome" and lack of immediate accountability.</p>
+<ul>
+<li><strong>The Black Hole:</strong> A manager assigns 50 tickets to a developer. The developer feels overwhelmed, ignores 45 of them, and works on the 5 loudest ones.</li>
+<li><strong>Fake Productivity:</strong> A team member checks off a task, but the work is subpar. The manager doesn't realize it until weeks later.</li>
+<li><strong>Zero Stakes:</strong> Tasks sit in "To Do" for 6 months with no consequences.</li>
+</ul>
+<p><strong>SYNDICATE PROTOCOL</strong> solves this by weaponizing peer pressure and extreme constraints.</p>
+<hr />
+<h2 id="3-core-multiplayer-mechanics">3. CORE MULTIPLAYER MECHANICS</h2>
+<h3 id="a-the-squad-radar-discovery">A. The Squad Radar (Discovery)</h3>
+<p>When an operative boots CIPHER.SYS, they select a mode: <code>LONE WOLF</code> or <code>JOIN SYNDICATE</code>.
+In Syndicate mode, the UI header expands into a <strong>Tactical Radar</strong>. It displays all currently connected <code>OP-IDs</code> (e.g., <code>[GHOST]</code>, <code>[VIPER]</code>, <code>[ECHO]</code>) on the local network. 
+* Crucially, it shows their capacity: <code>VIPER: [ 3 / 5 ]</code>. </p>
+<h3 id="b-the-cross-node-contract-delegation">B. The Cross-Node Contract (Delegation)</h3>
+<p>Operatives can assign tasks to each other using the <code>@</code> terminal syntax.
+* <em>Action:</em> <code>GHOST</code> types: <code>@VIPER Patch the staging database</code>.
+* <em>Constraint:</em> If <code>VIPER</code> already has 5 active tasks, the system physically <strong>rejects the assignment</strong> with a loud error: <code>[REJECTED: VIPER AT MAXIMUM CAPACITY]</code>. <code>GHOST</code> must physically tell <code>VIPER</code> to clear their board. You cannot micromanage an overloaded operative.</p>
+<h3 id="c-the-two-key-turn-verification">C. The Two-Key Turn (Verification)</h3>
+<p>A task assigned by another device can <strong>only be fully completed by the assigner</strong>.
+1. <code>VIPER</code> finishes the task and clicks <code>[ NEUTRALIZE ]</code>.
+2. The task does <em>not</em> disappear. It turns amber and enters <code>[ AWAITING HANDLER VERIFICATION ]</code>.
+3. <code>GHOST</code> (the assigner) receives a critical ping. They must inspect the work and click <code>[ CONFIRM KILL ]</code>. Only then is the task purged.
+4. If the work is bad, <code>GHOST</code> clicks <code>[ DENY ]</code>, throwing the task back to <code>VIPER</code>'s active board.</p>
+<h3 id="d-mutually-assured-destruction-mad">D. Mutually Assured Destruction (M.A.D.)</h3>
+<p>In Syndicate mode, the 7-day thermal decay is a shared threat.
+If <em>any</em> operative allows a task to expire (7 days without execution), the network takes an <strong>Integrity Strike</strong>. 
+At <strong>3 Strikes</strong>, the Host Daemon triggers an involuntary, global <strong>Scorched Earth</strong>. Every connected terminal instantly wipes all tasks. You fail as a team.</p>
+<hr />
+<h2 id="4-target-audience">4. TARGET AUDIENCE</h2>
+<ol>
+<li><strong>Agile Dev Teams / Startups:</strong> Daily standups translated into a 5-task max collaborative board.</li>
+<li><strong>Accountability Partners:</strong> Friends studying for exams or working on side-hustles who need mutually assured destruction to stay focused.</li>
+<li><strong>ADHD Work Groups:</strong> Body-doubling groups who need immediate, high-stakes verification mechanics to trigger dopamine and executive function.</li>
+</ol>
+<hr />
+<h2 id="5-non-goals-what-we-are-not-building">5. NON-GOALS (WHAT WE ARE NOT BUILDING)</h2>
+<ul>
+<li><strong>No Cloud Servers:</strong> Syndicate Protocol operates strictly over LAN / Localhost (or VPNs like Tailscale). We will not build a centralized SaaS cloud.</li>
+<li><strong>No Task Histories/Audit Logs:</strong> When a task is verified and killed, it vanishes forever. Managers cannot pull a "monthly productivity report".</li>
+<li><strong>No Project Folders:</strong> All tasks share the same tactical flat-level view.</li>
+</ul>
+<hr />
+<h2 id="6-launch-phases">6. LAUNCH PHASES</h2>
+<h3 id="phase-1-local-discovery-radar-v50">Phase 1: Local Discovery &amp; Radar (v5.0)</h3>
+<ul>
+<li>Toggle between <code>LONE WOLF</code> and <code>SYNDICATE</code> modes.</li>
+<li>Build the <code>Squad Radar</code> UI to show active peers via Socket.io.</li>
+</ul>
+<h3 id="phase-2-directed-fire-v51">Phase 2: Directed Fire (v5.1)</h3>
+<ul>
+<li>Implement the <code>@</code> syntax for cross-node assignment.</li>
+<li>Implement capacity rejection logic (the 5/5 block).</li>
+</ul>
+<h3 id="phase-3-the-two-key-turn-v52">Phase 3: The Two-Key Turn (v5.2)</h3>
+<ul>
+<li>Implement the Verification State machine (<code>ACTIVE</code> -&gt; <code>PENDING_VERIFICATION</code> -&gt; <code>NEUTRALIZED</code>).</li>
+<li>UI updates for Handlers to Accept/Deny completions.</li>
+</ul>
+<h3 id="phase-4-mad-engine-v53">Phase 4: M.A.D. Engine (v5.3)</h3>
+<ul>
+<li>Implement global health pools and synchronized multi-client wipe animations.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.tracking", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
