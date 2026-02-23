@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.3] - 2026-02-23
+
+### Fixed
+- **NPM Runtime Packaging**: Published package now ships compiled `dist/` assets to avoid blank-page module MIME failures after global install.
+- **Deterministic Launch URL**: Launcher now opens `http://localhost:4040` by default; `http://cipher.local:4040` remains an optional alias when mDNS is available.
+- **mDNS Query Matching**: Hardened `cipher.local` discovery by normalizing case, trimming trailing dots, scanning all DNS questions, and falling back to `127.0.0.1` when no non-internal IPv4 is present.
+
 ## [4.1.0] - 2026-02-23
 
 ### Added
