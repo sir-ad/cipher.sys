@@ -9,6 +9,7 @@
   },
   "scripts": {
     "start": "node server.js",
+    "build": "vite build",
     "postinstall": "echo \"\n[!] CIPHER.SYS V4 INSTALLED.\n[!] Run 'cipher' or 'npx @cipher.sys/terminal' to spawn the immortal daemon.\n\"",
     "docs:install": "pip install -r requirements.txt",
     "docs:serve": "mkdocs serve",
@@ -30,6 +31,14 @@
     "socket.io": "^4.7.2",
     "socket.io-client": "^4.7.2",
     "open": "^9.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.3"
   },
   "publishConfig": {
     "access": "public"
