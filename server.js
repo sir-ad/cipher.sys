@@ -25,14 +25,20 @@ let mdns;
 try {
   mdns = require('multicast-dns')();
   mdns.on('query', (query) => {
-    if (query.questions[0] && query.questions[0].name === DOMAIN) {
-      const ip = Object.values(os.networkInterfaces())
-        .flat()
-        .find((i) => i.family === 'IPv4' && !i.internal)?.address;
-      if (ip) {
-        mdns.respond({ answers: [{ name: DOMAIN, type: 'A', ttl: 300, data: ip }] });
-      }
-    }
+    const questions = Array.isArray(query.questions) ? query.questions : [];
+    const hasDomainQuestion = questions.some((q) => {
+      const name = String(q && q.name ? q.name : '')
+        .toLowerCase()
+        .replace(/\.$/, '');
+      return name === DOMAIN;
+    });
+    if (!hasDomainQuestion) return;
+
+    const ip = Object.values(os.networkInterfaces())
+      .flat()
+      .find((i) => i && i.family === 'IPv4' && !i.internal)?.address || '127.0.0.1';
+
+    mdns.respond({ answers: [{ name: DOMAIN, type: 'A', ttl: 300, data: ip }] });
   });
 } catch (e) {
   // mDNS not available

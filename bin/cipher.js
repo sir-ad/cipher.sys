@@ -6,6 +6,7 @@
  */
 
 const { spawn } = require('child_process');
+const fs = require('fs');
 const path = require('path');
 
 async function openUrl(url) {
@@ -21,6 +22,16 @@ console.log('\x1b[31m%s\x1b[0m', 'Initializing CIPHER.SYS Command Node...');
 
 // Resolve the path to the server.js file
 const serverPath = path.join(__dirname, '..', 'server.js');
+const distIndexPath = path.join(__dirname, '..', 'dist', 'index.html');
+const LOCAL_URL = 'http://localhost:4040';
+const MDNS_URL = 'http://cipher.local:4040';
+
+if (!fs.existsSync(distIndexPath)) {
+  console.log('\x1b[31m%s\x1b[0m', '[!] BUILD ARTIFACTS MISSING. dist/index.html was not found.');
+  console.log('Run `npm run build` and relaunch, or reinstall the package.');
+  console.log(`Then open ${LOCAL_URL} (or ${MDNS_URL} if mDNS is available).`);
+  process.exit(1);
+}
 
 // SPAWN AS DETACHED DAEMON
 // stdio: 'ignore' disconnects the server logs from this terminal
@@ -40,9 +51,9 @@ console.log('\x1b[33m%s\x1b[0m', '[!] The server will ONLY terminate when Scorch
 setTimeout(() => {
   console.log('\x1b[32m%s\x1b[0m', 'Opening interface...');
   
-  // Directly force the opening of the custom mDNS signature domain for pure sci-fi aesthetics.
-  openUrl('http://cipher.local:4040').catch(() => {
-    console.log('Please open http://cipher.local:4040 manually.');
+  // Prefer localhost for deterministic local startup; keep cipher.local as optional alias.
+  openUrl(LOCAL_URL).catch(() => {
+    console.log(`Please open ${LOCAL_URL} manually (or ${MDNS_URL} if mDNS is available).`);
   });
   
   setTimeout(() => {
