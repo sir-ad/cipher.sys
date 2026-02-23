@@ -57,7 +57,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
       <nav className="fixed top-0 w-full border-b border-gray-900 bg-black/80 backdrop-blur-md z-50 p-4 px-6 md:px-12 flex justify-between items-center">
         <div className="text-brand font-black tracking-[0.3em] uppercase text-sm md:text-base animate-pulse">CIPHER.SYS</div>
         <div className="flex gap-6">
-          <a href="https://sir-ad.github.io/CIPHER_TERMINAL/" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white uppercase tracking-widest text-[10px] md:text-xs transition-colors hidden sm:block">
+          <a href="https://sir-ad.github.io/cipher.sys/docs/" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white uppercase tracking-widest text-[10px] md:text-xs transition-colors hidden sm:block">
             [ DOCS ]
           </a>
           <a href="https://github.com/sir-ad/CIPHER_TERMINAL" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white uppercase tracking-widest text-[10px] md:text-xs transition-colors">
@@ -222,7 +222,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
             </button>
             
             <a 
-              href="https://sir-ad.github.io/CIPHER_TERMINAL/" 
+              href="https://sir-ad.github.io/cipher.sys/docs/" 
               target="_blank" 
               rel="noopener noreferrer"
               className="flex-1 py-5 md:py-6 border border-gray-600 text-gray-400 hover:text-white hover:border-white transition-all duration-300 uppercase tracking-[0.2em] font-bold text-xs md:text-sm text-center flex items-center justify-center gap-2 focus:outline-none bg-black"
