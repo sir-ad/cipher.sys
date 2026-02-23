@@ -8,6 +8,15 @@
 const { spawn } = require('child_process');
 const path = require('path');
 
+async function openUrl(url) {
+  const mod = await import('open');
+  const openFn = mod.default || mod;
+  if (typeof openFn !== 'function') {
+    throw new TypeError('open module did not resolve to a function');
+  }
+  return openFn(url);
+}
+
 console.log('\x1b[31m%s\x1b[0m', 'Initializing CIPHER.SYS Command Node...');
 
 // Resolve the path to the server.js file
@@ -32,12 +41,7 @@ setTimeout(() => {
   console.log('\x1b[32m%s\x1b[0m', 'Opening interface...');
   
   // Directly force the opening of the custom mDNS signature domain for pure sci-fi aesthetics.
-  import('open').then((openModule) => {
-    const openFn = openModule.default || openModule;
-    openFn('http://cipher.local:4040').catch(() => {
-      console.log('Please open http://cipher.local:4040 manually.');
-    });
-  }).catch(() => {
+  openUrl('http://cipher.local:4040').catch(() => {
     console.log('Please open http://cipher.local:4040 manually.');
   });
   
