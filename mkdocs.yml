@@ -1,0 +1,54 @@
+site_name: CIPHER.SYS
+site_description: Declassified Field Manual for Overwatch Ghost Protocol
+site_url: https://sir-ad.github.io/CIPHER_TERMINAL/
+repo_name: sir-ad/CIPHER_TERMINAL
+repo_url: https://github.com/sir-ad/CIPHER_TERMINAL
+
+theme:
+  name: material
+  custom_dir: docs/overrides
+  palette:
+    - scheme: slate
+      primary: black
+      accent: custom-red
+  font:
+    text: Roboto Mono
+    code: Fira Code
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.tracking
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+
+extra_css:
+  - stylesheets/cipher-terminal.css
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.mark
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+nav:
+  - UPLINK_ESTABLISHED: index.md
+  - OPERATIVE BRIEFING:
+    - Boot Sequence: briefing/boot-sequence.md
+    - Rules of Engagement: briefing/rules.md
+  - SYNDICATE PROTOCOL (MULTIPLAYER):
+    - Vision & PRD: multiplayer/prd-syndicate.md
+    - Squad Mechanics: multiplayer/rules-of-engagement.md
+    - UI & User Flows: multiplayer/user-flows.md
+    - Network Topology: multiplayer/network-topology.md
+  - ARCHITECTURE:
+    - Host Daemon: architecture/daemon.md
+    - AI Interrogation: architecture/ai-handler.md
+  - PUBLIC UPLINK:
+    - Website PRD: website-prd.md
