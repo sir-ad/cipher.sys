@@ -1,12 +1,11 @@
 site_name: CIPHER.SYS
 site_description: Declassified Field Manual for Overwatch Ghost Protocol
-site_url: https://sir-ad.github.io/CIPHER_TERMINAL/
-repo_name: sir-ad/CIPHER_TERMINAL
-repo_url: https://github.com/sir-ad/CIPHER_TERMINAL
+site_url: https://sir-ad.github.io/cipher.sys/
+repo_name: sir-ad/cipher.sys
+repo_url: https://github.com/sir-ad/cipher.sys
 
 theme:
   name: material
-  custom_dir: docs/overrides
   palette:
     - scheme: slate
       primary: black
