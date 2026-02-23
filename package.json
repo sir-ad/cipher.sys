@@ -1,6 +1,6 @@
 {
   "name": "@cipher.sys/terminal",
-  "version": "4.0.1",
+  "version": "4.1.0",
   "description": "Autonomous Covert Terminal. Max 5 directives. Scorched earth protocol. V4 Phoenix.",
   "main": "server.js",
   "bin": {
@@ -9,14 +9,21 @@
   },
   "scripts": {
     "start": "node server.js",
-    "postinstall": "echo \"\n[!] CIPHER.SYS V4 INSTALLED.\n[!] Run 'cipher' in your terminal to spawn the immortal daemon.\n\"",
+    "postinstall": "echo \"\n[!] CIPHER.SYS V4 INSTALLED.\n[!] Run 'cipher' or 'npx @cipher.sys/terminal' to spawn the immortal daemon.\n\"",
     "docs:install": "pip install -r requirements.txt",
     "docs:serve": "mkdocs serve",
     "docs:build": "mkdocs build",
     "docs:deploy": "mkdocs gh-deploy"
   },
-  "author": "sir-ad",
+  "author": "adarsh.agrahari26 <adarsh.agrahari26@gmail.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sir-ad/cipher.sys.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sir-ad/cipher.sys/issues"
+  },
   "dependencies": {
     "express": "^4.18.2",
     "multicast-dns": "^7.2.5",
