@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Deterministic runtime lifecycle commands: `cipher up`, `cipher stop`, `cipher status`, `cipher open`, and `cipher mcp start`.
+- Auto-clean bootstrap flow (stop old runtime, clean artifacts, start fresh daemon, wait on health, open browser).
+- Daemon health and control interfaces (`/healthz`, `/api/discovery`, `/api/state`, `/api/tasks`, `/api/shutdown`).
+- MCP server and tool surface for daemon control and local Ollama integration.
+- Runtime state management utilities for PID/state/log cleanup and stale process recovery.
+- Browser state wipe utility for destructive terminal exits.
+- New architecture and protocol documentation pages.
+- Release manifest templates for separate GitHub and npm release tracks.
+
+### Changed
+- README rewritten with deep technical feature map, protocol catalog, architecture diagram, and mission narrative.
+- Boot sequence documentation updated to `cipher up` lifecycle model.
+- In-app docs/source links normalized to canonical URLs.
+
 ## [4.1.3] - 2026-02-23
 
 ### Fixed

@@ -167,7 +167,7 @@ export const ActiveTasks: React.FC<ActiveTasksProps> = ({
               Boss Key: Double-Tap [ESC]
             </div>
             <a 
-              href="https://sir-ad.github.io/CIPHER_TERMINAL/" 
+              href="https://sir-ad.github.io/cipher.sys/docs/" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-[9px] md:text-[10px] text-brand/80 hover:text-white font-mono tracking-[0.2em] uppercase border border-brand/40 hover:border-brand px-3 py-1.5 transition-all duration-300 focus:outline-none hover:shadow-[0_0_15px_rgba(255,0,51,0.6)] bg-black hover:bg-brand/10"

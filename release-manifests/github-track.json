@@ -1,0 +1,7 @@
+{
+  "channel": "github",
+  "version_target": "5.0.0",
+  "git_commit_sha": "PENDING_PR_MERGE_SHA",
+  "date_utc": "2026-02-24T18:31:24Z",
+  "notes": "GitHub track executed separately from npm publish. Update git_commit_sha after merge."
+}
