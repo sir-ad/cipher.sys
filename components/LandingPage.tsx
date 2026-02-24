@@ -9,6 +9,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
   const { playKeystroke, initAudio, playPing } = useCyberAudio();
   const [bootText, setBootText] = useState<string>('');
   const [isLocalNode, setIsLocalNode] = useState(false);
+  const [showFallback, setShowFallback] = useState(false);
+  const [manualJoinTarget, setManualJoinTarget] = useState('');
+  const [joinHint, setJoinHint] = useState('If cipher.local fails, enter host IP (example: 192.168.1.5).');
   
   useEffect(() => {
     // Detect if the operative is accessing this page from the deployed local daemon vs the public recruitment website
@@ -35,14 +38,46 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
     return () => clearInterval(t);
   }, []);
 
-  const handleConnect = () => {
+  const normalizeJoinTarget = (raw: string): string | null => {
+    const trimmed = raw.trim();
+    if (!trimmed) return null;
+    let candidate = trimmed;
+    if (!/^https?:\/\//i.test(candidate)) candidate = `http://${candidate}`;
+    try {
+      const url = new URL(candidate);
+      const port = url.port || '4040';
+      return `${url.protocol === 'https:' ? 'https:' : 'http:'}//${url.hostname}:${port}`;
+    } catch (_) {
+      return null;
+    }
+  };
+
+  const openManualJoin = () => {
+    const normalized = normalizeJoinTarget(manualJoinTarget);
+    if (!normalized) {
+      setJoinHint('Invalid join target. Use IP or host, e.g. 192.168.1.5');
+      return;
+    }
+    window.location.href = normalized;
+  };
+
+  const handleConnect = async () => {
     if (isLocalNode) {
       initAudio();
       playPing();
       onEnter();
     } else {
-      // If on the public web, route them to their local mDNS broadcast
-      window.location.href = 'http://cipher.local:4040';
+      const target = 'http://cipher.local:4040';
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 1500);
+        await fetch(`${target}/healthz`, { mode: 'no-cors', signal: controller.signal });
+        clearTimeout(timer);
+        window.location.href = target;
+      } catch (_) {
+        setShowFallback(true);
+        setJoinHint('cipher.local did not resolve. Use host IP join instead.');
+      }
     }
   };
 
@@ -209,8 +244,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
           </div>
 
           <div className="text-amber-500/80 text-[10px] md:text-xs uppercase tracking-widest mb-10 border-l border-amber-900 pl-4 py-3 bg-amber-950/20">
-            Daemon will detach and broadcast its mDNS signature at <strong className="text-white">http://cipher.local:4040</strong>.<br/>
-            Only proceed below once the local network connection is established.
+            Daemon will detach and attempt mDNS broadcast at <strong className="text-white">http://cipher.local:4040</strong>.<br/>
+            If mDNS is blocked on your network, use direct host IP join.
           </div>
 
           <div className="flex flex-col sm:flex-row gap-6">
@@ -230,6 +265,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
               [ DECLASSIFIED FIELD MANUAL ]
             </a>
           </div>
+
+          {showFallback && (
+            <div className="mt-6 border border-brand/30 bg-black p-4 md:p-5">
+              <p className="text-brand text-[10px] md:text-xs uppercase tracking-[0.2em] mb-3">{joinHint}</p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  value={manualJoinTarget}
+                  onChange={(e) => setManualJoinTarget(e.target.value)}
+                  placeholder="HOST IP OR URL (e.g. 192.168.1.5)"
+                  className="flex-1 bg-black border border-gray-700 px-3 py-2 text-xs md:text-sm text-gray-300 focus:outline-none focus:border-brand tracking-widest uppercase"
+                />
+                <button
+                  onClick={openManualJoin}
+                  className="px-4 py-2 border border-brand text-brand hover:bg-brand hover:text-white transition-colors text-xs uppercase tracking-[0.2em] font-bold focus:outline-none"
+                >
+                  [ OPEN HOST ]
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

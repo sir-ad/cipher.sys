@@ -9,6 +9,7 @@ const RUNTIME_PATHS = {
   daemonState: path.join(RUNTIME_DIR, 'daemon-state.json'),
   daemonPid: path.join(RUNTIME_DIR, 'daemon.pid'),
   daemonLog: path.join(RUNTIME_DIR, 'daemon.log'),
+  joinState: path.join(RUNTIME_DIR, 'join-state.json'),
   mcpState: path.join(RUNTIME_DIR, 'mcp-state.json'),
   mcpPid: path.join(RUNTIME_DIR, 'mcp.pid'),
   mcpLog: path.join(RUNTIME_DIR, 'mcp.log'),
@@ -20,6 +21,7 @@ const CLEANUP_FILE_NAMES = new Set([
   path.basename(RUNTIME_PATHS.daemonState),
   path.basename(RUNTIME_PATHS.daemonPid),
   path.basename(RUNTIME_PATHS.daemonLog),
+  path.basename(RUNTIME_PATHS.joinState),
   path.basename(RUNTIME_PATHS.mcpState),
   path.basename(RUNTIME_PATHS.mcpPid),
   path.basename(RUNTIME_PATHS.mcpLog),
@@ -85,6 +87,18 @@ function clearDaemonState() {
   safeUnlink(RUNTIME_PATHS.daemonPid);
 }
 
+function getJoinState() {
+  return safeReadJson(RUNTIME_PATHS.joinState);
+}
+
+function setJoinState(state) {
+  safeWriteJson(RUNTIME_PATHS.joinState, state);
+}
+
+function clearJoinState() {
+  safeUnlink(RUNTIME_PATHS.joinState);
+}
+
 function getMcpState() {
   return safeReadJson(RUNTIME_PATHS.mcpState);
 }
@@ -130,6 +144,9 @@ module.exports = {
   getDaemonState,
   setDaemonState,
   clearDaemonState,
+  getJoinState,
+  setJoinState,
+  clearJoinState,
   getMcpState,
   setMcpState,
   clearMcpState,

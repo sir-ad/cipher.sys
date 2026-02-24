@@ -1,6 +1,6 @@
 # RUNTIME PROTOCOLS
 
-This document defines the operational protocols that make CIPHER deterministic under pressure.
+This document defines the operational protocols that keep CIPHER deterministic.
 
 ## 1) AUTO_CLEAN_BOOTSTRAP
 **Purpose:** Guarantee clean startup with one command.
@@ -8,23 +8,32 @@ This document defines the operational protocols that make CIPHER deterministic u
 **Entry:** `cipher up`
 
 **Sequence:**
-1. Stop existing daemon/MCP if present.
+1. Stop existing local daemon/MCP if present.
 2. Kill stale listeners if needed.
 3. Remove runtime artifacts (`pid/state/log/lock`).
-4. Start fresh daemon detached.
-5. Wait for `/healthz` with `X-Cipher: 1`.
-6. Open browser app.
+4. Probe LAN for authoritative host.
+5. If host found: enter `JOIN` mode and open host URL.
+6. If host not found: start fresh local host daemon.
 
-**Success criteria:** Exactly one healthy daemon, clean runtime journal.
+**Success criteria:** Single active authoritative host target, no duplicate local daemons.
 
-## 2) THERMAL_DECAY
+## 2) LAN_JOIN_FALLBACK
+**Purpose:** Keep discovery resilient when mDNS is blocked.
+
+**Priority:**
+1. `cipher.local` (best effort)
+2. direct host IP (`http://<host-ip>:4040`)
+
+**Contract:** CIPHER must still be usable via IP when `cipher.local` fails.
+
+## 3) THERMAL_DECAY
 **Purpose:** Enforce real priority by expiration pressure.
 
 **Policy:** Tasks older than 7 days are purged.
 
 **In Syndicate mode:** Expiry causes integrity strike against shared squad pool.
 
-## 3) SCORCHED_EARTH
+## 4) SCORCHED_EARTH
 **Purpose:** Exit condition by design, not endless engagement.
 
 **Triggers:**
@@ -37,7 +46,7 @@ This document defines the operational protocols that make CIPHER deterministic u
 - Mission debrief export.
 - Host termination sequence.
 
-## 4) SYNDICATE_DELEGATION
+## 5) SYNDICATE_DELEGATION
 **Purpose:** Cross-node task assignment with capacity constraints.
 
 **Mechanics:**
@@ -45,7 +54,7 @@ This document defines the operational protocols that make CIPHER deterministic u
 - Reject if target is at max capacity.
 - Target receives incoming directive modal.
 
-## 5) TWO_KEY_TURN
+## 6) TWO_KEY_TURN
 **Purpose:** Prevent fake completion in collaborative mode.
 
 **State path:**
@@ -55,7 +64,7 @@ This document defines the operational protocols that make CIPHER deterministic u
 - Assignee can request verification.
 - Handler confirms or denies kill.
 
-## 6) HOST_TERMINATION_BROADCAST
+## 7) HOST_TERMINATION_BROADCAST
 **Purpose:** Synchronize shutdown-aware UI behavior.
 
 **Event:** `host_terminating`
@@ -65,7 +74,15 @@ This document defines the operational protocols that make CIPHER deterministic u
 - Clear local active state.
 - Continue mission-close UX.
 
-## 7) MISSION_DEBRIEF
+## 8) AUTHORITATIVE_SYNC
+**Purpose:** Prevent split-brain task timelines across devices.
+
+**Rules:**
+1. Server `sync_state` is authoritative.
+2. Clients do not push full local state on initial connect.
+3. Mutations are locked when disconnected from authority.
+
+## 9) MISSION_DEBRIEF
 **Purpose:** Produce post-run artifact for human tracking.
 
 **Output:** Downloadable `.txt` report with:
@@ -74,12 +91,12 @@ This document defines the operational protocols that make CIPHER deterministic u
 - session task summary
 - cumulative telemetry stats
 
-## 8) LOCAL_STATE_WIPE
+## 10) LOCAL_STATE_WIPE
 **Purpose:** Avoid ghost identity/session leakage after terminal burn.
 
 **Behavior:** Remove CIPHER-owned local storage keys on destructive exit path.
 
-## 9) AUDIO_SIGNALING
+## 11) AUDIO_SIGNALING
 **Purpose:** Make state changes legible under focus mode.
 
 **Engine:** WebAudio procedural synthesis.
@@ -91,7 +108,7 @@ This document defines the operational protocols that make CIPHER deterministic u
 - purge static burst
 - incoming directive ringtone
 
-## 10) LOCAL_LLM_INTERROGATION
+## 12) LOCAL_LLM_INTERROGATION
 **Purpose:** Keep motivational pressure local and private.
 
 **Transport:** Ollama on `127.0.0.1:11434`
@@ -103,11 +120,11 @@ This document defines the operational protocols that make CIPHER deterministic u
 
 No cloud dependency required.
 
-## 11) CROSS_DEVICE_RESUME
+## 13) CROSS_DEVICE_RESUME
 **Purpose:** Continue operations from another device without accounts.
 
 **Composition:**
 - socket state sync
-- LAN discovery/mDNS
-- manual IP override fallback
+- LAN discovery (`cipher.local` best effort)
+- mandatory manual IP fallback
 - browser-local persistence for reconnect continuity
