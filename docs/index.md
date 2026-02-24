@@ -28,7 +28,10 @@ CIPHER is not a standard web application. It runs as a detached Node.js daemon o
 
 ```bash
 # Initiate the ghost protocol
-npm run start
+cipher up
 ```
 
-Proceed to the [Boot Sequence](briefing/boot-sequence.md) to initialize your command node.
+Proceed to:
+- [Boot Sequence](briefing/boot-sequence.md) for deployment.
+- [System Architecture](architecture/system-architecture.md) for component topology.
+- [Runtime Protocols](architecture/protocols.md) for operational mechanics.

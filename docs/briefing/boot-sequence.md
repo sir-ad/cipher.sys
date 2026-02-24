@@ -20,14 +20,24 @@ npm install
 
 ## IGNITION
 
-To launch the daemon in the background as a detached process:
+To launch with deterministic bootstrap (stop old instance -> clean runtime -> start fresh daemon -> open browser):
 
 ```bash
-npm run start
+cipher up
 ```
 
+`cipher` with no args also maps to `cipher up`.
+
 !!! warning "DAEMON BEHAVIOR"
-    The server process detaches from your terminal window immediately. Closing your console **will not** stop the server. The daemon only terminates when a Scorched Earth protocol is authorized from within the UI, or by manually killing the node process.
+    The server process detaches from your terminal window immediately. Closing your console **will not** stop the server. Use `cipher stop` to terminate and clean runtime artifacts.
+
+## CONTROL COMMANDS
+
+```bash
+cipher status
+cipher open
+cipher mcp start
+```
 
 ## NETWORK DISCOVERY
 

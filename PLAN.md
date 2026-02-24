@@ -1,46 +1,53 @@
-# Hotfix Plan: Blank Screen After Global Install
+# CIPHER v5 Plan (GitHub and npm Released Separately)
 
-## Problem Statement
-- Global/npm installs of `@cipher.sys/terminal@4.1.2` can render a blank page.
-- Root causes:
-  - `dist/` is excluded from published package because npm falls back to `.gitignore`.
-  - Server then serves source `index.tsx`, which the browser rejects as a module due to MIME type.
-- Secondary issue:
-  - Launcher opens `http://cipher.local:4040` by default, which can fail with NXDOMAIN on hosts without working mDNS resolution.
+## Summary
+Use two independent release tracks:
+1. GitHub track for code/docs PR + merge.
+2. npm track for package publish at a separate time.
 
-## Files To Change
-- `package.json`
-- `package-lock.json`
-- `bin/cipher.js`
-- `server.js`
-- `CHANGELOG.md`
+## Release Model Update
+1. Do not couple npm publish timing to GitHub merge.
+2. Keep a release manifest per run with:
+   - `version` or `version_target`
+   - `git commit SHA`
+   - `date_utc`
+   - `channel` (`github` or `npm`)
+3. Prefer publishing npm from a known commit SHA.
 
-## Risks And Mitigations
-- Risk: npm tarball misses required runtime files.
-  - Mitigation: enforce `prepack` build and explicit `files` whitelist.
-- Risk: mDNS behavior regressions on some networks.
-  - Mitigation: keep `localhost` as primary launch target; mDNS remains optional alias.
-- Risk: launcher exits early if dist missing in local dev scenarios.
-  - Mitigation: actionable error message explains rebuild path (`npm run build`).
+## Track A: GitHub
+1. Branch from `origin/main` using `ad/cipher-v5-release`.
+2. Finalize runtime, docs, README, GIF, and architecture/protocol content.
+3. Validate build/typecheck/CLI/API/MCP smoke checks.
+4. Push branch and open PR to `main`.
+5. Record GitHub manifest in `release-manifests/github-track.json`.
 
-## Step-by-Step Tasks
-1. Bump package version to `4.1.3`.
-2. Add `prepack` script to build before packaging.
-3. Add `files` whitelist to include runtime artifacts (`bin/`, `dist/`, `server.js`, docs/license/changelog).
-4. Add launcher preflight check for `dist/index.html`.
-5. Switch launcher default URL to `http://localhost:4040`.
-6. Keep fallback guidance including optional `http://cipher.local:4040`.
-7. Harden mDNS query handling in server for case-insensitive and trailing-dot hostnames across all questions.
-8. Add changelog entry for `4.1.3`.
+## Track B: npm (Separate Session)
+1. Checkout intended publish commit on `main`.
+2. Authenticate npm.
+3. Set version (`5.0.0` target).
+4. Validate with `npm run build` and `npm pack --dry-run`.
+5. Publish with `npm publish --access public`.
+6. Verify `npm view` and `npx @cipher.sys/terminal@latest`.
+7. Record npm manifest from template.
+
+## Content Requirements
+1. Founder-style clean README rewrite.
+2. GIF embed from `docs/assets/rollbot.gif`.
+3. Mermaid architecture diagram in README.
+4. Deep tech features + protocol catalog.
+5. Mission-style narrative and mission debrief behavior.
+6. Local LLM/Ollama integration explanation.
 
 ## Validation Commands
 1. `npm run build`
-2. `npm pack --dry-run --cache /tmp/npm-cache-cipher`
-3. `npm pack --cache /tmp/npm-cache-cipher`
-4. `TMP=$(mktemp -d) && cd "$TMP" && npm init -y && npm install /Users/starlord/Downloads/vanish-2/cipher.sys-terminal-4.1.3.tgz && ls -la node_modules/@cipher.sys/terminal/dist`
-5. `node /Users/starlord/Downloads/vanish-2/bin/cipher.js`
+2. `npx tsc --noEmit`
+3. `node bin/cipher.js up`
+4. `node bin/cipher.js status`
+5. `node bin/cipher.js mcp start`
+6. `node bin/cipher.js stop`
+7. `npm pack --dry-run`
 
-## Rollback Strategy
-1. Revert the hotfix commit.
-2. Restore previous launch and packaging behavior.
-3. If already released, publish follow-up patch with corrected packaging/launcher behavior.
+## Rollback
+1. Revert PR branch before merge if needed.
+2. If npm release is wrong, publish corrective follow-up version.
+3. Keep GitHub and npm rollback independent.

@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { DestructReason } from '../types';
 import { useCyberAudio } from '../hooks/useCyberAudio';
+import { wipeCipherLocalState } from '../utils/session';
 
 interface DestructedTerminalProps {
   reason?: DestructReason;
@@ -23,6 +24,7 @@ export const DestructedTerminal: React.FC<DestructedTerminalProps> = ({ reason, 
   const [codename, setCodename] = useState('');
   const [corruptionTick, setCorruptionTick] = useState(0);
   const [quote, setQuote] = useState('');
+  const didExitRef = useRef(false);
   const { playPurge, initAudio } = useCyberAudio();
 
   useEffect(() => {
@@ -90,6 +92,9 @@ export const DestructedTerminal: React.FC<DestructedTerminalProps> = ({ reason, 
   }, [corruptionTick]);
 
   const handleExit = () => {
+    if (didExitRef.current) return;
+    didExitRef.current = true;
+    wipeCipherLocalState();
     terminateServer(); // Execute physical node.js assassination
     window.location.replace('about:blank');
     setTimeout(() => window.close(), 100);

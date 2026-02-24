@@ -47,6 +47,8 @@ nav:
     - UI & User Flows: multiplayer/user-flows.md
     - Network Topology: multiplayer/network-topology.md
   - ARCHITECTURE:
+    - System Architecture: architecture/system-architecture.md
+    - Runtime Protocols: architecture/protocols.md
     - Host Daemon: architecture/daemon.md
     - AI Interrogation: architecture/ai-handler.md
   - PUBLIC UPLINK:

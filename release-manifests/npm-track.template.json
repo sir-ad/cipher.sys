@@ -1,0 +1,7 @@
+{
+  "channel": "npm",
+  "published_version": "TBD",
+  "git_commit_sha": "TBD",
+  "date_utc": "TBD",
+  "notes": "Fill this when npm publish is executed in the separate release session."
+}
