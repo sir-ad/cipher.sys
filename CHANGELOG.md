@@ -16,11 +16,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Browser state wipe utility for destructive terminal exits.
 - New architecture and protocol documentation pages.
 - Release manifest templates for separate GitHub and npm release tracks.
+- Shared ASCII banner utility used by install and CLI launch paths.
+- LAN discovery client utility with mDNS + DNS probing and host health verification.
+- Minimal Node test suite for CLI flag parsing and discovery URL normalization.
+- Multi-device smoke script validating sync propagation across two socket clients.
 
 ### Changed
 - README rewritten with deep technical feature map, protocol catalog, architecture diagram, and mission narrative.
 - Boot sequence documentation updated to `cipher up` lifecycle model.
 - In-app docs/source links normalized to canonical URLs.
+- `cipher up` now defaults to single-authority topology: local clean-up first, then LAN host auto-join before local host spawn.
+- `/api/discovery` now exposes deterministic join targets (`join.localhost`, `join.mdns`, `join.ip`) and mDNS runtime health (`mdns.status`, `mdns.error`).
+- UI sync model now treats daemon `sync_state` as authoritative and locks task mutations while disconnected.
+- Landing/connect UX now treats `cipher.local` as best-effort and exposes explicit host-IP fallback.
+- Package version bumped to `5.0.1`.
 
 ## [4.1.3] - 2026-02-23
 

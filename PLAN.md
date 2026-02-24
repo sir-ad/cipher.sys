@@ -1,53 +1,50 @@
-# CIPHER v5 Plan (GitHub and npm Released Separately)
+# CIPHER v5.0.1 Reliability Hotfix Plan
 
 ## Summary
-Use two independent release tracks:
-1. GitHub track for code/docs PR + merge.
-2. npm track for package publish at a separate time.
+Patch release to harden LAN discovery/sync behavior and align launcher UX with install UX.
 
-## Release Model Update
-1. Do not couple npm publish timing to GitHub merge.
-2. Keep a release manifest per run with:
-   - `version` or `version_target`
-   - `git commit SHA`
-   - `date_utc`
-   - `channel` (`github` or `npm`)
-3. Prefer publishing npm from a known commit SHA.
+## Scope
+1. Make `cipher.local` best-effort with mandatory IP fallback.
+2. Enforce single authoritative host by default (`cipher up` auto-join).
+3. Lock task mutations when disconnected from authoritative daemon.
+4. Show ASCII banner on install and launch.
+5. Preserve separate GitHub and npm release tracks.
 
-## Track A: GitHub
-1. Branch from `origin/main` using `ad/cipher-v5-release`.
-2. Finalize runtime, docs, README, GIF, and architecture/protocol content.
-3. Validate build/typecheck/CLI/API/MCP smoke checks.
-4. Push branch and open PR to `main`.
-5. Record GitHub manifest in `release-manifests/github-track.json`.
+## Files
+1. `server.js`
+2. `bin/cipher.js`
+3. `scripts/postinstall.js`
+4. `utils/runtimeState.js`
+5. `utils/banner.js` (new)
+6. `utils/discoveryClient.js` (new)
+7. `hooks/useVanish.ts`
+8. `components/ActiveTasks.tsx`
+9. `components/LandingPage.tsx`
+10. `App.tsx`
+11. `README.md`
+12. `docs/briefing/boot-sequence.md`
+13. `docs/architecture/protocols.md`
+14. `package.json`
+15. `tests/cli-up-mode.test.js` (new)
+16. `tests/discovery-mdns.test.js` (new)
+17. `scripts/smoke/multidevice-sync.js` (new)
 
-## Track B: npm (Separate Session)
-1. Checkout intended publish commit on `main`.
-2. Authenticate npm.
-3. Set version (`5.0.0` target).
-4. Validate with `npm run build` and `npm pack --dry-run`.
-5. Publish with `npm publish --access public`.
-6. Verify `npm view` and `npx @cipher.sys/terminal@latest`.
-7. Record npm manifest from template.
+## Risks
+1. LAN probe false-positives could send clients to wrong host.
+2. Mutation lock may feel strict if a host is flaky.
+3. Browser restrictions may limit public-page reachability checks.
 
-## Content Requirements
-1. Founder-style clean README rewrite.
-2. GIF embed from `docs/assets/rollbot.gif`.
-3. Mermaid architecture diagram in README.
-4. Deep tech features + protocol catalog.
-5. Mission-style narrative and mission debrief behavior.
-6. Local LLM/Ollama integration explanation.
+## Mitigations
+1. Verify host with `/healthz` + `X-Cipher: 1` before join.
+2. Keep manual overrides: `--host`, `--join`, and UI IP override.
+3. Keep connect fallback UX explicit in landing page.
 
 ## Validation Commands
 1. `npm run build`
 2. `npx tsc --noEmit`
-3. `node bin/cipher.js up`
-4. `node bin/cipher.js status`
-5. `node bin/cipher.js mcp start`
-6. `node bin/cipher.js stop`
-7. `npm pack --dry-run`
-
-## Rollback
-1. Revert PR branch before merge if needed.
-2. If npm release is wrong, publish corrective follow-up version.
-3. Keep GitHub and npm rollback independent.
+3. `npm run test`
+4. `node scripts/smoke/multidevice-sync.js`
+5. `node bin/cipher.js up --host`
+6. `node bin/cipher.js status`
+7. `node bin/cipher.js stop`
+8. `npm pack --dry-run`

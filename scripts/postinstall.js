@@ -2,15 +2,7 @@
 
 const path = require('path');
 const { spawnSync } = require('child_process');
-
-const logo = `
- ██████╗██╗██████╗ ██╗  ██╗███████╗██████╗
-██╔════╝██║██╔══██╗██║  ██║██╔════╝██╔══██╗
-██║     ██║██████╔╝███████║█████╗  ██████╔╝
-██║     ██║██╔═══╝ ██╔══██║██╔══╝  ██╔══██╗
-╚██████╗██║██║     ██║  ██║███████╗██║  ██║
- ╚═════╝╚═╝╚═╝     ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-`;
+const { printBanner, shouldPrintBanner } = require('../utils/banner');
 
 function parseNpmArgv() {
   try {
@@ -37,7 +29,9 @@ function runCipherUp() {
 }
 
 function main() {
-  process.stdout.write(`\n${logo}\n`);
+  if (shouldPrintBanner(process.argv.slice(2), process.env)) {
+    printBanner();
+  }
   process.stdout.write('[CIPHER] installation complete.\n');
 
   if (!isGlobalInstall()) {
