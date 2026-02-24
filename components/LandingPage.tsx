@@ -60,7 +60,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
           <a href="https://sir-ad.github.io/cipher.sys/docs/" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white uppercase tracking-widest text-[10px] md:text-xs transition-colors hidden sm:block">
             [ DOCS ]
           </a>
-          <a href="https://github.com/sir-ad/CIPHER_TERMINAL" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white uppercase tracking-widest text-[10px] md:text-xs transition-colors">
+          <a href="https://github.com/sir-ad/cipher.sys" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white uppercase tracking-widest text-[10px] md:text-xs transition-colors">
             [ SOURCE ]
           </a>
         </div>

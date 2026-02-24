@@ -305,6 +305,21 @@ export const useVanish = (): UseVanishReturn => {
       saveTasks([]);
     });
 
+    socket.on('host_terminating', (data: { reason?: DestructReason | string }) => {
+      setTasksState([]);
+      saveTasks([]);
+      setDeployedState(false);
+      const incomingReason = data?.reason;
+      const normalizedReason =
+        incomingReason === DestructReason.OPTIMAL_CLEAR ||
+        incomingReason === DestructReason.MARGINAL_CLEAR ||
+        incomingReason === DestructReason.MANUAL_BURN
+          ? incomingReason
+          : DestructReason.MANUAL_BURN;
+      setDestructReason(normalizedReason);
+      setView(AppView.DESTRUCTED);
+    });
+
     socket.on('sync_state', (serverState: any) => {
       if (!serverState) return;
 
