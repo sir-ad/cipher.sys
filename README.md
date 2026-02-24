@@ -20,78 +20,39 @@ CIPHER flips the axis:
 
 The best outcome is that you stop needing the app.
 
-## Problems We Solve
-- Endless backlog creep and decision paralysis.
-- Port/process confusion from stale local daemons.
-- Localhost tab drift (wrong app on same port).
-- Fake “done” loops without social accountability.
-- Cross-device continuation friction on LAN-only workflows.
+## Reliability Hotfix (v5.0.1)
+- **Single authoritative host by default:** secondary devices auto-join host instead of spawning isolated daemons.
+- **mDNS is best-effort:** `cipher.local` is attempted first, but direct host-IP fallback is always supported.
+- **Authority-first sync:** clients trust daemon `sync_state`; disconnected clients cannot silently mutate task state.
+- **ASCII banner parity:** banner is shown during install and during CLI launch (`cipher`, `cipher up`).
 
 ## Deep Tech Features
-- Auto-Clean Bootstrap Runtime: `cipher up` always runs `stop -> clean -> start -> health-check -> open`.
-- Daemon Health Contract: `/healthz` + `X-Cipher: 1` for deterministic process detection.
-- Legacy Process Recovery: CLI can detect and terminate older listeners on `:4040`.
-- Runtime State Journal: PID/state artifacts under a dedicated runtime directory for reliable lifecycle control.
-- Multiplayer Mesh via Socket.io: delegated directives, kill verification, squad telemetry, integrity strikes.
-- mDNS LAN Discovery: `cipher.local` resolution + network IP signaling for device join flows.
-- MCP Server + Tool Surface: task/state/discovery control + Ollama tool bridge.
+- Auto-Clean Bootstrap Runtime: `cipher up` runs local `stop -> clean -> probe -> join/start -> open`.
+- Host/Join Runtime Modes: CLI reports `HOST|JOIN` and active target URL.
+- Runtime State Journal: PID/state artifacts under a dedicated runtime directory.
+- mDNS Discovery + IP Fallback: resilient LAN join model.
+- MCP Server + Tool Surface: task/state/discovery control + Ollama bridge.
 - Host Termination Broadcast: `host_terminating` socket event for synchronized shutdown UX.
 - Mission Debrief Export: session summary auto-downloaded when terminal burns.
 - Browser State Wipe Protocol: local identity/session/task keys purged on destruct path.
 - Procedural Audio Engine: WebAudio-generated keystrokes, alarms, pings, purge noise, ringtone.
 - Local LLM Handler: Ollama detection + hostile sitrep generation without cloud dependency.
 
-## Protocols
-See full protocol specs in [Runtime Protocols](docs/architecture/protocols.md). Core protocols:
-
-- `AUTO_CLEAN_BOOTSTRAP`
-- `THERMAL_DECAY`
-- `SCORCHED_EARTH`
-- `SYNDICATE_DELEGATION`
-- `TWO_KEY_TURN`
-- `HOST_TERMINATION_BROADCAST`
-- `MISSION_DEBRIEF`
-- `LOCAL_LLM_INTERROGATION`
-
-## Cross-Device Resume
-CIPHER is LAN-first and accountless.
-Resume works by combining:
-
-- daemon-side state sync over Socket.io,
-- local browser persistence for fast reconnect,
-- LAN discovery (`cipher.local` + network IP),
-- manual IP override fallback for strict networks.
-
-## Audio + UX Signals
-UI direction is sci-fi tactical console: CRT scanline aesthetic, hard contrast, and aggressive status feedback.
-Mission-style audio is generated in-browser (WebAudio), not loaded from static sound files.
-
-## Story: Operation Black Ledger
-You are an operative with five payload slots and no backup queue.
-Every directive is on a fuse. Ignore it long enough, and the system burns it down.
-
-In Syndicate mode, your squad can assign you targets.
-You can claim completion, but another operator still turns the second key.
-No second key, no kill.
-
-When the board reaches zero, CIPHER executes Scorched Earth,
-hands you a mission debrief file, and terminates the host process.
-Mission accomplished means the app exits the stage.
-
 ## Architecture
 Detailed architecture: [System Architecture](docs/architecture/system-architecture.md)
 
 ```mermaid
 flowchart LR
-  CLI["CLI (cipher)"] -->|"start/stop/status/up"| DAEMON["Node Daemon (Express + Socket.io)"]
+  CLI["CLI (cipher)"] -->|"up/stop/status/open"| MODE["HOST or JOIN resolver"]
+  MODE -->|"HOST"| DAEMON["Node Daemon (Express + Socket.io)"]
+  MODE -->|"JOIN"| REMOTE["Authoritative LAN Host"]
   CLI -->|"mcp start"| MCP["MCP Server"]
   DAEMON -->|"/healthz /api/*"| WEB["React Terminal UI"]
-  WEB -->|"socket sync"| DAEMON
-  DAEMON -->|"mDNS + LAN"| PEERS["Peer Devices"]
+  WEB -->|"authoritative sync"| DAEMON
+  DAEMON -->|"mDNS + IP"| PEERS["Peer Devices"]
   DAEMON -->|"/api/tags /api/generate"| OLLAMA["Local Ollama (11434)"]
   MCP -->|"tool calls"| DAEMON
   MCP -->|"ollama.tools"| OLLAMA
-  WEB -->|"mission report download"| REPORT["Debrief TXT"]
 ```
 
 ## Install
@@ -109,18 +70,23 @@ Global install runs postinstall bootstrap automatically.
 ## Command Surface
 
 ```bash
-cipher up                 # stop-clean-start-open
-cipher stop               # stop daemon + cleanup runtime artifacts
-cipher status             # daemon + mcp health
-cipher open               # open app (bootstraps if needed)
-cipher mcp start          # start MCP in background
+cipher up                            # stop-clean, then auto-join LAN host or start local host
+cipher up --host                     # force local host mode
+cipher up --join 192.168.1.5         # force join explicit host
+cipher stop                          # stop daemon + cleanup runtime artifacts
+cipher status                        # host/join + mcp status
+cipher open                          # open active target (host or join)
+cipher mcp start                     # start MCP in background
 cipher mcp start --foreground
+cipher --quiet up                    # suppress launch banner
 ```
 
 ## Public Interfaces
 
 ### CLI
 - `cipher up`
+- `cipher up --host`
+- `cipher up --join <ip-or-url>`
 - `cipher stop`
 - `cipher status`
 - `cipher open`
@@ -128,7 +94,7 @@ cipher mcp start --foreground
 
 ### HTTP
 - `GET /healthz` (`X-Cipher: 1`)
-- `GET /api/discovery`
+- `GET /api/discovery` (includes `join.*` + `mdns.*` health)
 - `GET /api/state`
 - `GET /api/tasks`
 - `POST /api/tasks`
@@ -149,6 +115,11 @@ cipher mcp start --foreground
 - `cipher.delete_task`
 - `ollama.tags`
 - `ollama.generate`
+
+## Troubleshooting
+- `cipher.local` fails: use `http://<host-ip>:4040` and UI IP OVERRIDE.
+- Tasks not syncing: ensure all devices join one authoritative host (`cipher status`).
+- Suspected duplicate daemon: run `cipher stop` then `cipher up`.
 
 ## Docs
 - [Field Manual](https://sir-ad.github.io/cipher.sys/docs/)

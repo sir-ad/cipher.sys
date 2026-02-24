@@ -1,6 +1,6 @@
 {
   "name": "@cipher.sys/terminal",
-  "version": "4.1.3",
+  "version": "5.0.1",
   "description": "Autonomous Covert Terminal. Max 5 directives. Scorched earth protocol. V4 Phoenix.",
   "main": "server.js",
   "bin": {
@@ -25,6 +25,8 @@
     "status": "node bin/cipher.js status",
     "mcp:start": "node mcp/server.js",
     "build": "vite build",
+    "test": "node --test tests/cli-up-mode.test.js tests/discovery-mdns.test.js",
+    "smoke:multidevice": "node scripts/smoke/multidevice-sync.js",
     "prepack": "npm run build",
     "postinstall": "node scripts/postinstall.js",
     "docs:install": "pip install -r requirements.txt",

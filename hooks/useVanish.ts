@@ -15,6 +15,10 @@ interface UseVanishReturn {
   isConnected: boolean;
   activeNodes: number;
   networkIp: string;
+  authoritativeHostUrl: string;
+  joinIpUrl: string;
+  manualIpError: string | null;
+  mutationsLocked: boolean;
   coprocessor: CoprocessorStatus;
   destructReason: DestructReason;
   handlerMessage: HandlerMessage | null;
@@ -113,27 +117,24 @@ const exportMissionReport = (tasksToExport: Task[], statsToExport: Stats, reason
   }
 };
 
-const mergeTasks = (local: Task[], remote: Task[]): Task[] => {
-  const taskMap = new Map<string, Task>();
-  [...(local || []), ...(remote || [])].forEach(t => {
-    const existing = taskMap.get(t.id);
-    const tUpdated = t.updatedAt || t.createdAt || 0;
-    const existingUpdated = existing ? (existing.updatedAt || existing.createdAt || 0) : -1;
-    if (!existing || tUpdated > existingUpdated) {
-      taskMap.set(t.id, t);
-    }
-  });
-  return Array.from(taskMap.values());
+const normalizeAuthorityUrl = (raw: string): string | null => {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  let target = trimmed;
+  if (!/^https?:\/\//i.test(target)) {
+    target = `http://${target}`;
+  }
+  try {
+    const url = new URL(target);
+    const protocol = url.protocol === 'https:' ? 'https:' : 'http:';
+    const port = url.port || '4040';
+    return `${protocol}//${url.hostname}:${port}`;
+  } catch (_) {
+    return null;
+  }
 };
 
-const mergeStats = (local: Stats, remote: Stats): Stats => ({
-  totalCompleted: Math.max(local.totalCompleted || 0, remote.totalCompleted || 0),
-  totalExpired: Math.max(local.totalExpired || 0, remote.totalExpired || 0),
-  totalSessions: Math.max(local.totalSessions || 0, remote.totalSessions || 0),
-  fastestSessionMs: (local.fastestSessionMs && remote.fastestSessionMs) 
-      ? Math.min(local.fastestSessionMs, remote.fastestSessionMs) 
-      : (local.fastestSessionMs || remote.fastestSessionMs || null)
-});
+const normalizeManualSocketTarget = (raw: string): string | null => normalizeAuthorityUrl(raw);
 
 export const useVanish = (): UseVanishReturn => {
   const [tasks, setTasksState] = useState<Task[]>(loadTasks);
@@ -154,7 +155,11 @@ export const useVanish = (): UseVanishReturn => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [activeNodes, setActiveNodes] = useState<number>(1);
   const [networkIp, setNetworkIp] = useState<string>('');
+  const [authoritativeHostUrl, setAuthoritativeHostUrl] = useState<string>(() => normalizeAuthorityUrl(window.location.origin) || 'http://localhost:4040');
+  const [joinIpUrl, setJoinIpUrl] = useState<string>('');
   const [manualSocketUrl, setManualSocketUrl] = useState<string>(() => localStorage.getItem('cipher_manual_ip') || '');
+  const [manualIpError, setManualIpError] = useState<string | null>(null);
+  const [isAuthoritativeReady, setIsAuthoritativeReady] = useState<boolean>(false);
   const [coprocessor, setCoprocessor] = useState<CoprocessorStatus>({ active: false, type: null, modelCount: 0 });
   const [destructReason, setDestructReason] = useState<DestructReason>(DestructReason.MANUAL_BURN);
   const [handlerMessage, setHandlerMessage] = useState<HandlerMessage | null>(null);
@@ -171,6 +176,7 @@ export const useVanish = (): UseVanishReturn => {
   const { playPing, playWarning, playAlarm, playKeystroke, playSuccess } = useCyberAudio();
   const lastStatusReportMs = useRef<number>(Date.now());
   const socketRef = useRef<Socket | null>(null);
+  const hasAuthoritativeSyncRef = useRef<boolean>(false);
   
   const setLastBurnTime = useCallback((time: number) => {
     setLastBurnTimeState(time);
@@ -194,19 +200,38 @@ export const useVanish = (): UseVanishReturn => {
     if (!trimmed) {
       localStorage.removeItem('cipher_manual_ip');
       setManualSocketUrl('');
+      setManualIpError(null);
       return;
     }
-    let url = trimmed;
-    if (!url.startsWith('http')) url = `http://${url}`;
-    if (!url.split('//')[1].includes(':')) url = `${url}:4040`;
-    localStorage.setItem('cipher_manual_ip', url);
-    setManualSocketUrl(url);
+
+    const normalized = normalizeManualSocketTarget(trimmed);
+    if (!normalized) {
+      setManualIpError('Invalid host/IP format. Example: 192.168.1.5');
+      return;
+    }
+
+    localStorage.setItem('cipher_manual_ip', normalized);
+    setManualSocketUrl(normalized);
+    setManualIpError(null);
   }, []);
 
   const stateRef = useRef({ tasks, stats, lastBurnTime });
   useEffect(() => {
     stateRef.current = { tasks, stats, lastBurnTime };
   }, [tasks, stats, lastBurnTime]);
+
+  const mutationsLocked = !isConnected || !isAuthoritativeReady;
+
+  const requireAuthoritativeLink = useCallback((): boolean => {
+    if (!mutationsLocked) return true;
+    playWarning();
+    sendTransmission(
+      'SYNC LOCKED',
+      'Reconnect to authoritative host. Use IP OVERRIDE if cipher.local is unavailable.',
+      'decay-warning'
+    );
+    return false;
+  }, [mutationsLocked, playWarning, sendTransmission]);
 
   // SOCKET INITIATION
   useEffect(() => {
@@ -216,37 +241,62 @@ export const useVanish = (): UseVanishReturn => {
     if (!manualSocketUrl && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === 'cipher.local')) {
       socketUrl = `http://${window.location.hostname}:4040`;
     }
+    const initialAuthority = normalizeAuthorityUrl(socketUrl || window.location.origin) || 'http://localhost:4040';
+    setAuthoritativeHostUrl(initialAuthority);
+    hasAuthoritativeSyncRef.current = false;
+    setIsAuthoritativeReady(false);
 
     const socket = io(socketUrl, { reconnectionAttempts: 10, timeout: 5000 });
     socketRef.current = socket;
 
+    const loadDiscovery = async (baseUrl: string) => {
+      try {
+        const response = await fetch(`${baseUrl}/api/discovery`);
+        if (!response.ok) return;
+        const payload = await response.json();
+        if (typeof payload.activeNodes === 'number') setActiveNodes(payload.activeNodes);
+        if (payload.networkIp) {
+          setNetworkIp(payload.networkIp);
+          setJoinIpUrl(`http://${payload.networkIp}:4040`);
+        }
+        if (payload.join?.ip) {
+          setJoinIpUrl(String(payload.join.ip));
+        }
+      } catch (_) {
+        // no-op
+      }
+    };
+
     socket.on('connect', () => {
       setIsConnected(true);
+      setManualIpError(null);
+      const managerAny = socket.io as unknown as { uri?: string };
+      const connectedAuthority = normalizeAuthorityUrl(managerAny.uri || initialAuthority) || initialAuthority;
+      setAuthoritativeHostUrl(connectedAuthority);
+      void loadDiscovery(connectedAuthority);
       
       if (syndicateMode) {
         const opId = localStorage.getItem('agent_codename') || 'GHOST';
         const activeCount = stateRef.current.tasks.filter(t => t.completedAt === null && !t.deletedAt && (!t.owner || t.owner === opId)).length;
         socket.emit('join_syndicate', { opId, activeTaskCount: activeCount });
       }
-
-      socket.emit('update_state', { 
-        tasks: stateRef.current.tasks, 
-        stats: stateRef.current.stats,
-        lastBurnTime: stateRef.current.lastBurnTime,
-        syndicateMode
-      });
     });
 
     socket.on('disconnect', () => {
       setIsConnected(false);
+      setIsAuthoritativeReady(false);
+      hasAuthoritativeSyncRef.current = false;
       setActiveNodes(1);
       setCoprocessor({ active: false, type: null, modelCount: 0 });
       setSquadNodes([]);
     });
 
     socket.on('node_status', (data: { online: boolean, activeNodes: number, networkIp?: string }) => {
-      if (data.activeNodes) setActiveNodes(data.activeNodes);
-      if (data.networkIp) setNetworkIp(data.networkIp);
+      if (typeof data.activeNodes === 'number') setActiveNodes(data.activeNodes);
+      if (data.networkIp) {
+        setNetworkIp(data.networkIp);
+        setJoinIpUrl(`http://${data.networkIp}:4040`);
+      }
     });
 
     socket.on('coprocessor_status', (status: CoprocessorStatus) => setCoprocessor(status));
@@ -322,6 +372,8 @@ export const useVanish = (): UseVanishReturn => {
 
     socket.on('sync_state', (serverState: any) => {
       if (!serverState) return;
+      hasAuthoritativeSyncRef.current = true;
+      setIsAuthoritativeReady(true);
 
       if (serverState.mode === 'SYNDICATE' && serverState.squadIntegrity !== undefined) {
         setSquadIntegrity(serverState.squadIntegrity);
@@ -329,35 +381,28 @@ export const useVanish = (): UseVanishReturn => {
 
       if (serverState.lastBurnTime && serverState.lastBurnTime > stateRef.current.lastBurnTime) {
         setLastBurnTime(serverState.lastBurnTime);
-        setTasksState([]);
-        saveTasks([]);
         setDeployedState(false);
         if (localStorage.getItem('agent_codename')) {
            setView(AppView.TASKS);
         }
-      } else if (serverState.tasks) {
-        setTasksState(prev => {
-          const validPrev = prev.filter(t => t.createdAt >= (serverState.lastBurnTime || stateRef.current.lastBurnTime));
-          
-          const codename = localStorage.getItem('agent_codename');
-          // Filter incoming tasks securely based on mode to protect the local memory footprint
-          const incomingTasks = syndicateMode 
-            ? serverState.tasks.filter((t: Task) => t.syndicate)
-            : serverState.tasks.filter((t: Task) => !t.owner || t.owner === codename);
-
-          const merged = mergeTasks(validPrev, incomingTasks);
-          if (JSON.stringify(merged) === JSON.stringify(prev)) return prev;
-          saveTasks(merged);
-          return merged;
-        });
       }
 
+      const incomingTasks: Task[] = Array.isArray(serverState.tasks)
+        ? serverState.tasks
+        : [];
+      const scopedTasks = syndicateMode
+        ? incomingTasks.filter((task) => task.syndicate)
+        : incomingTasks;
+
+      setTasksState(() => {
+        saveTasks(scopedTasks);
+        return scopedTasks;
+      });
+
       if (serverState.stats) {
-        setStatsState(prev => {
-          const merged = mergeStats(prev, serverState.stats);
-          if (JSON.stringify(merged) === JSON.stringify(prev)) return prev;
-          saveStats(merged);
-          return merged;
+        setStatsState(() => {
+          saveStats(serverState.stats);
+          return serverState.stats;
         });
       }
     });
@@ -373,19 +418,25 @@ export const useVanish = (): UseVanishReturn => {
       setView(AppView.DESTRUCTED);
     });
 
-    return () => { socket.disconnect(); };
+    return () => {
+      socket.disconnect();
+      hasAuthoritativeSyncRef.current = false;
+      setIsAuthoritativeReady(false);
+    };
   }, [playPing, setLastBurnTime, manualSocketUrl, setDeployedState, syndicateMode, playAlarm, playWarning, playSuccess, sendTransmission]);
 
   const setTasks = useCallback((newTasks: Task[] | ((prev: Task[]) => Task[])) => {
     setTasksState((prev) => {
       const updated = typeof newTasks === 'function' ? newTasks(prev) : newTasks;
       saveTasks(updated);
-      socketRef.current?.emit('update_state', { 
-        tasks: updated, 
-        stats: stateRef.current.stats,
-        lastBurnTime: stateRef.current.lastBurnTime,
-        syndicateMode
-      });
+      if (socketRef.current?.connected && hasAuthoritativeSyncRef.current) {
+        socketRef.current.emit('update_state', { 
+          tasks: updated, 
+          stats: stateRef.current.stats,
+          lastBurnTime: stateRef.current.lastBurnTime,
+          syndicateMode
+        });
+      }
       return updated;
     });
   }, [syndicateMode]);
@@ -394,12 +445,14 @@ export const useVanish = (): UseVanishReturn => {
     setStatsState((prev) => {
       const updated = typeof newStats === 'function' ? newStats(prev) : newStats;
       saveStats(updated);
-      socketRef.current?.emit('update_state', { 
-        tasks: stateRef.current.tasks, 
-        stats: updated,
-        lastBurnTime: stateRef.current.lastBurnTime,
-        syndicateMode
-      });
+      if (socketRef.current?.connected && hasAuthoritativeSyncRef.current) {
+        socketRef.current.emit('update_state', { 
+          tasks: stateRef.current.tasks, 
+          stats: updated,
+          lastBurnTime: stateRef.current.lastBurnTime,
+          syndicateMode
+        });
+      }
       return updated;
     });
   }, [syndicateMode]);
@@ -407,6 +460,7 @@ export const useVanish = (): UseVanishReturn => {
   const checkExpiry = useCallback(() => {
     // If in Syndicate mode, let the Host Server execute M.A.D rules instead of local deletes
     if (syndicateMode) return; 
+    if (mutationsLocked) return;
 
     const now = Date.now();
     setTasks((prevTasks) => {
@@ -440,7 +494,7 @@ export const useVanish = (): UseVanishReturn => {
       }
       return changed ? updatedTasks : prevTasks;
     });
-  }, [setTasks, setStats, sendTransmission, playWarning, playAlarm, syndicateMode]);
+  }, [setTasks, setStats, sendTransmission, playWarning, playAlarm, syndicateMode, mutationsLocked]);
 
   useEffect(() => { checkExpiry(); }, []);
   useEffect(() => {
@@ -498,6 +552,8 @@ export const useVanish = (): UseVanishReturn => {
       manualPanic(); return;
     }
 
+    if (!requireAuthoritativeLink()) return;
+
     const codename = localStorage.getItem('agent_codename') || 'GHOST';
 
     // Syndicate: Cross-Node Delegation Detection
@@ -524,16 +580,18 @@ export const useVanish = (): UseVanishReturn => {
         completedAt: null,
         updatedAt: now,
         deletedAt: null,
-        owner: codename,
+        owner: syndicateMode ? codename : null,
         status: 'ACTIVE',
         syndicate: syndicateMode
       };
       return [...prev, newTask];
     });
-  }, [setTasks, manualPanic, syndicateMode]);
+  }, [setTasks, manualPanic, syndicateMode, requireAuthoritativeLink]);
 
   // SYNDICATE ACTIONS
   const acceptDirective = useCallback((task: Task) => {
+    if (!requireAuthoritativeLink()) return;
+
     // Just-in-Time Capacity Verification to prevent modal bypass
     const codename = localStorage.getItem('agent_codename') || 'GHOST';
     const activeCount = stateRef.current.tasks.filter(t => t.completedAt === null && !t.deletedAt && (!t.owner || t.owner === codename)).length;
@@ -549,28 +607,33 @@ export const useVanish = (): UseVanishReturn => {
     socketRef.current?.emit('accept_directive', task);
     setIncomingDirective(null);
     setView(AppView.TASKS);
-  }, []);
+  }, [requireAuthoritativeLink]);
 
   const rejectDirective = useCallback((task: Task) => {
+    if (!requireAuthoritativeLink()) return;
     socketRef.current?.emit('reject_directive', { handler: task.handler, taskId: task.id, text: task.text });
     setIncomingDirective(null);
     setView(AppView.TASKS);
-  }, []);
+  }, [requireAuthoritativeLink]);
 
   const requestVerification = useCallback((taskId: string) => {
+    if (!requireAuthoritativeLink()) return;
     socketRef.current?.emit('request_verification', taskId);
-  }, []);
+  }, [requireAuthoritativeLink]);
 
   const verifyKill = useCallback((taskId: string) => {
+    if (!requireAuthoritativeLink()) return;
     socketRef.current?.emit('confirm_kill', taskId);
-  }, []);
+  }, [requireAuthoritativeLink]);
 
   const denyKill = useCallback((taskId: string) => {
+    if (!requireAuthoritativeLink()) return;
     socketRef.current?.emit('deny_kill', taskId);
-  }, []);
+  }, [requireAuthoritativeLink]);
 
   // Standard Actions modified for Two-Key turn
   const completeTask = useCallback((id: string) => {
+    if (!requireAuthoritativeLink()) return;
     const task = tasks.find(t => t.id === id);
     if (!task) return;
 
@@ -587,22 +650,29 @@ export const useVanish = (): UseVanishReturn => {
     setHandlerMessage(null);
     
     if (activeTargetId === id) { setView(AppView.TASKS); setActiveTargetId(null); }
-  }, [setTasks, setStats, activeTargetId, tasks, syndicateMode, requestVerification]);
+  }, [setTasks, setStats, activeTargetId, tasks, syndicateMode, requestVerification, requireAuthoritativeLink]);
 
   const deleteTask = useCallback((id: string) => {
+    if (!requireAuthoritativeLink()) return;
     const now = Date.now();
     setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, deletedAt: now, updatedAt: now } : t)));
     if (activeTargetId === id) { setView(AppView.TASKS); setActiveTargetId(null); }
-  }, [setTasks, activeTargetId]);
+  }, [setTasks, activeTargetId, requireAuthoritativeLink]);
 
   const deployOperation = useCallback(() => { playKeystroke(); setDeployedState(true); }, [playKeystroke, setDeployedState]);
   const engageTarget = useCallback((id: string) => { playKeystroke(); setActiveTargetId(id); setView(AppView.ENGAGED); }, [playKeystroke]);
   const disengageTarget = useCallback(() => { playKeystroke(); setActiveTargetId(null); setView(AppView.TASKS); }, [playKeystroke]);
   
   const acknowledgeExpiry = useCallback(() => { setView(AppView.TASKS); setExpiredCount(0); }, []);
-  const keepApp = useCallback(() => { setTasks([]); setView(AppView.TASKS); setDeployedState(false); }, [setTasks, setDeployedState]);
+  const keepApp = useCallback(() => {
+    if (!requireAuthoritativeLink()) return;
+    setTasks([]);
+    setView(AppView.TASKS);
+    setDeployedState(false);
+  }, [setTasks, setDeployedState, requireAuthoritativeLink]);
   
   const letItGo = useCallback(() => {
+    if (!requireAuthoritativeLink()) return;
     exportMissionReport(stateRef.current.tasks, stateRef.current.stats, destructReason);
     const now = Date.now();
     setLastBurnTime(now);
@@ -611,7 +681,7 @@ export const useVanish = (): UseVanishReturn => {
     setView(AppView.DESTRUCTED); 
     const codename = localStorage.getItem('agent_codename') || 'GHOST';
     socketRef.current?.emit('initiate_burn', { reason: destructReason, syndicateMode, opId: codename });
-  }, [setTasks, destructReason, setLastBurnTime, setDeployedState, syndicateMode]);
+  }, [setTasks, destructReason, setLastBurnTime, setDeployedState, syndicateMode, requireAuthoritativeLink]);
 
   // Handle M.A.D wipe cleanly without echoing an initiate_burn storm
   const finishGlobalWipe = useCallback(() => {
@@ -620,7 +690,10 @@ export const useVanish = (): UseVanishReturn => {
     setDestructReason(DestructReason.MARGINAL_CLEAR);
   }, [setDeployedState]);
 
-  const terminateServer = useCallback(() => { socketRef.current?.emit('terminate_host_process'); }, []);
+  const terminateServer = useCallback(() => {
+    if (!requireAuthoritativeLink()) return;
+    socketRef.current?.emit('terminate_host_process');
+  }, [requireAuthoritativeLink]);
 
   const enterOnboarding = useCallback(() => {
     setView(AppView.IDENTIFY);
@@ -642,7 +715,7 @@ export const useVanish = (): UseVanishReturn => {
 
   return {
     view, tasks: tasks.filter(t => !t.deletedAt), 
-    stats, expiredCount, completedSessionCount, isConnected, activeNodes, networkIp, coprocessor,
+    stats, expiredCount, completedSessionCount, isConnected, activeNodes, networkIp, authoritativeHostUrl, joinIpUrl, manualIpError, mutationsLocked, coprocessor,
     destructReason, handlerMessage, incomingCallText, isDeployed, activeTargetId,
     syndicateMode, squadIntegrity, squadNodes, incomingDirective, globalWipeCulprit,
     addTask, completeTask, deleteTask, deployOperation, engageTarget, disengageTarget,
