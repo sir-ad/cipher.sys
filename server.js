@@ -10,6 +10,13 @@ const http = require('http');
 const { Server } = require('socket.io');
 const os = require('os');
 const path = require('path');
+const crypto = require('crypto');
+const {
+  setDaemonState,
+  clearDaemonState,
+  ensureRuntimeDir,
+  RUNTIME_PATHS,
+} = require('./utils/runtimeState');
 
 const PORT = process.env.PORT || 4040;
 const DOMAIN = 'cipher.local';
@@ -18,8 +25,16 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 
-app.use(express.static(path.join(__dirname, 'dist')));
-app.use(express.static(__dirname));
+app.use(express.json({ limit: '1mb' }));
+
+function getPrimaryIPv4() {
+  return (
+    Object.values(os.networkInterfaces())
+      .flat()
+      .find((iface) => iface && iface.family === 'IPv4' && !iface.internal)?.address ||
+    '127.0.0.1'
+  );
+}
 
 let mdns;
 try {
@@ -34,10 +49,7 @@ try {
     });
     if (!hasDomainQuestion) return;
 
-    const ip = Object.values(os.networkInterfaces())
-      .flat()
-      .find((i) => i && i.family === 'IPv4' && !i.internal)?.address || '127.0.0.1';
-
+    const ip = getPrimaryIPv4();
     mdns.respond({ answers: [{ name: DOMAIN, type: 'A', ttl: 300, data: ip }] });
   });
 } catch (e) {
@@ -59,6 +71,159 @@ let activeModelName = '';
 const calledTasks = new Set();
 const EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
 const ONE_HOUR_MS = 60 * 60 * 1000;
+let startedAt = Date.now();
+let shuttingDown = false;
+
+ensureRuntimeDir();
+
+function writeDaemonRuntimeState() {
+  setDaemonState({
+    pid: process.pid,
+    port: Number(PORT),
+    domain: DOMAIN,
+    startedAt,
+    runtimeDir: RUNTIME_PATHS.dir,
+  });
+}
+
+function recalcNodeCapacities() {
+  Object.keys(dbState.nodes).forEach((sid) => {
+    const opId = dbState.nodes[sid].opId;
+    dbState.nodes[sid].activeTaskCount = dbState.tasks.filter(
+      (task) => (task.owner === opId || !task.owner) && task.completedAt === null && !task.deletedAt
+    ).length;
+  });
+}
+
+function emitStateSync() {
+  io.emit('sync_state', dbState);
+  io.emit('squad_update', Object.values(dbState.nodes));
+}
+
+function scheduleShutdown(reason = 'HOST_TERMINATED') {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  io.emit('host_terminating', { reason, timestamp: Date.now() });
+  setTimeout(() => {
+    io.close(() => {
+      server.close(() => {
+        clearDaemonState();
+        process.exit(0);
+      });
+    });
+  }, 250);
+  setTimeout(() => {
+    clearDaemonState();
+    process.exit(0);
+  }, 2000).unref();
+}
+
+function buildDiscoveryPayload() {
+  return {
+    domain: DOMAIN,
+    port: Number(PORT),
+    networkIp: getPrimaryIPv4(),
+    activeNodes: io.engine.clientsCount,
+    mode: dbState.mode,
+    runtimeDir: RUNTIME_PATHS.dir,
+    pid: process.pid,
+    startedAt,
+  };
+}
+
+app.get('/healthz', (_req, res) => {
+  res.setHeader('X-Cipher', '1');
+  res.status(200).json({
+    ok: true,
+    pid: process.pid,
+    port: Number(PORT),
+    mode: dbState.mode,
+    uptimeMs: Date.now() - startedAt,
+  });
+});
+
+app.get('/api/discovery', (_req, res) => {
+  res.status(200).json(buildDiscoveryPayload());
+});
+
+app.get('/api/state', (_req, res) => {
+  res.status(200).json({
+    state: dbState,
+    coprocessor: aiCoprocessor,
+    activeModelName,
+  });
+});
+
+app.get('/api/tasks', (_req, res) => {
+  res.status(200).json({ tasks: dbState.tasks });
+});
+
+app.post('/api/tasks', (req, res) => {
+  const text = String(req.body?.text || '').trim();
+  if (!text) {
+    res.status(400).json({ error: 'Task text is required.' });
+    return;
+  }
+
+  const now = Date.now();
+  const task = {
+    id: crypto.randomUUID ? crypto.randomUUID() : now.toString(),
+    text,
+    createdAt: now,
+    completedAt: null,
+    updatedAt: now,
+    deletedAt: null,
+    owner: req.body?.owner ? String(req.body.owner).toUpperCase() : null,
+    handler: req.body?.handler ? String(req.body.handler).toUpperCase() : null,
+    status: 'ACTIVE',
+    syndicate: Boolean(req.body?.syndicate),
+  };
+
+  dbState.tasks.push(task);
+  recalcNodeCapacities();
+  emitStateSync();
+  res.status(201).json({ task });
+});
+
+app.post('/api/tasks/:id/complete', (req, res) => {
+  const id = String(req.params.id || '');
+  const task = dbState.tasks.find((item) => item.id === id);
+  if (!task || task.deletedAt) {
+    res.status(404).json({ error: 'Task not found.' });
+    return;
+  }
+  const now = Date.now();
+  task.completedAt = now;
+  task.updatedAt = now;
+  task.status = 'NEUTRALIZED';
+  recalcNodeCapacities();
+  emitStateSync();
+  res.status(200).json({ task });
+});
+
+app.post('/api/tasks/:id/delete', (req, res) => {
+  const id = String(req.params.id || '');
+  const task = dbState.tasks.find((item) => item.id === id);
+  if (!task) {
+    res.status(404).json({ error: 'Task not found.' });
+    return;
+  }
+  const now = Date.now();
+  task.deletedAt = now;
+  task.updatedAt = now;
+  recalcNodeCapacities();
+  emitStateSync();
+  res.status(200).json({ task });
+});
+
+app.post('/api/shutdown', (req, res) => {
+  const reason = String(req.body?.reason || 'CLI_STOP').toUpperCase();
+  res.status(202).json({ ok: true, reason });
+  setTimeout(() => scheduleShutdown(reason), 50);
+});
+
+app.use(express.static(path.join(__dirname, 'dist')));
+app.use(express.static(__dirname));
 
 function detectCoprocessor() {
   http.get('http://127.0.0.1:11434/api/tags', (res) => {
@@ -216,9 +381,7 @@ function checkIncomingCalls() {
 setInterval(checkIncomingCalls, 15000);
 
 function broadcastNodeStatus() {
-  const ip = Object.values(os.networkInterfaces())
-    .flat()
-    .find((i) => i.family === 'IPv4' && !i.internal)?.address;
+  const ip = getPrimaryIPv4();
   io.emit('node_status', { online: true, activeNodes: io.engine.clientsCount, networkIp: ip });
   io.emit('squad_update', Object.values(dbState.nodes));
 }
@@ -254,7 +417,7 @@ io.on('connection', (socket) => {
       return;
     }
 
-    const taskId = require('crypto').randomUUID ? require('crypto').randomUUID() : Date.now().toString();
+    const taskId = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString();
     const directiveTask = {
       id: taskId,
       text: text,
@@ -273,10 +436,9 @@ io.on('connection', (socket) => {
     task.updatedAt = Date.now();
     dbState.tasks.push(task);
     if (dbState.nodes[socket.id]) {
-       dbState.nodes[socket.id].activeTaskCount += 1;
-       io.emit('squad_update', Object.values(dbState.nodes));
+      dbState.nodes[socket.id].activeTaskCount += 1;
     }
-    io.emit('sync_state', dbState);
+    emitStateSync();
   });
 
   socket.on('reject_directive', (payload) => {
@@ -312,13 +474,8 @@ io.on('connection', (socket) => {
         io.to(ownerNode.socketId).emit('kill_confirmed', task);
       }
 
-      // Update nodes active counts by re-counting (only tasks they own)
-      Object.keys(dbState.nodes).forEach(sid => {
-        const opId = dbState.nodes[sid].opId;
-        dbState.nodes[sid].activeTaskCount = dbState.tasks.filter(t => (t.owner === opId || !t.owner) && t.completedAt === null && !t.deletedAt).length;
-      });
-      io.emit('squad_update', Object.values(dbState.nodes));
-      io.emit('sync_state', dbState);
+      recalcNodeCapacities();
+      emitStateSync();
     }
   });
 
@@ -333,7 +490,7 @@ io.on('connection', (socket) => {
         io.to(ownerNode.socketId).emit('kill_denied', task);
       }
 
-      io.emit('sync_state', dbState);
+      emitStateSync();
     }
   });
   // ------------------------------------------------------------------
@@ -380,19 +537,19 @@ io.on('connection', (socket) => {
       // Local lone wolf burn isolates their own tasks without destroying the server network
       dbState.tasks = dbState.tasks.filter(t => t.owner !== opId);
     }
-    socket.broadcast.emit('sync_state', dbState);
+    emitStateSync();
   });
 
   socket.on('terminate_host_process', () => {
-    io.close(() => {
-      server.close(() => {
-        process.exit(0);
-      });
-    });
-    setTimeout(() => process.exit(0), 1500);
+    scheduleShutdown('SOCKET_TERMINATE');
   });
 });
 
+process.on('SIGTERM', () => scheduleShutdown('SIGTERM'));
+process.on('SIGINT', () => scheduleShutdown('SIGINT'));
+process.on('exit', () => clearDaemonState());
+
 server.listen(PORT, () => {
-  // Silent startup because it is now running detached.
+  startedAt = Date.now();
+  writeDaemonRuntimeState();
 });
