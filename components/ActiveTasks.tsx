@@ -12,6 +12,10 @@ interface ActiveTasksProps {
   isConnected: boolean;
   activeNodes: number;
   networkIp: string;
+  authoritativeHostUrl: string;
+  joinIpUrl: string;
+  manualIpError: string | null;
+  mutationsLocked: boolean;
   coprocessor: CoprocessorStatus;
   handlerMessage: HandlerMessage | null;
   isDeployed: boolean;
@@ -34,6 +38,10 @@ export const ActiveTasks: React.FC<ActiveTasksProps> = ({
   isConnected,
   activeNodes,
   networkIp,
+  authoritativeHostUrl,
+  joinIpUrl,
+  manualIpError,
+  mutationsLocked,
   coprocessor,
   handlerMessage,
   isDeployed,
@@ -53,9 +61,11 @@ export const ActiveTasks: React.FC<ActiveTasksProps> = ({
   const [codename, setCodename] = useState(() => localStorage.getItem('agent_codename') || 'GHOST');
   
   // Tactical Filters
-  const myActiveTasks = tasks.filter((t) => t.completedAt === null && (!t.owner || t.owner === codename));
-  const delegatedTasks = tasks.filter((t) => t.completedAt === null && t.owner !== codename && t.handler === codename);
-  const myCompletedTasks = tasks.filter((t) => t.completedAt !== null && (!t.owner || t.owner === codename));
+  const myActiveTasks = tasks.filter((t) => t.completedAt === null && (syndicateMode ? (!t.owner || t.owner === codename) : true));
+  const delegatedTasks = syndicateMode
+    ? tasks.filter((t) => t.completedAt === null && t.owner !== codename && t.handler === codename)
+    : [];
+  const myCompletedTasks = tasks.filter((t) => t.completedAt !== null && (syndicateMode ? (!t.owner || t.owner === codename) : true));
   
   const slotsRemaining = MAX_TASKS - myActiveTasks.length;
   const hasTasks = myActiveTasks.length > 0 || delegatedTasks.length > 0;
@@ -99,30 +109,37 @@ export const ActiveTasks: React.FC<ActiveTasksProps> = ({
             <div className="w-2.5 h-2.5 bg-red-600 rounded-full animate-ping shrink-0"></div>
             <div className="flex flex-col">
               <span className="text-red-500 font-bold uppercase tracking-widest text-xs md:text-sm drop-shadow-[0_0_5px_#ff0033]">SYNC SEVERED [LOCAL MODE]</span>
-              <span className="text-red-800 text-[9px] md:text-[10px] tracking-[0.2em] uppercase">COMMAND NODE OFFLINE OR UNREACHABLE</span>
+              <span className="text-red-800 text-[9px] md:text-[10px] tracking-[0.2em] uppercase">
+                {mutationsLocked ? 'MUTATIONS LOCKED • CONNECT TO AUTHORITATIVE HOST' : 'COMMAND NODE OFFLINE OR UNREACHABLE'}
+              </span>
             </div>
           </div>
-          <div className="flex items-center gap-2 w-full md:w-auto relative z-10">
-            <input 
-              type="text" 
-              placeholder="IP OVERRIDE (e.g. 192.168.1.5)"
-              className="bg-black border border-red-900/80 px-3 py-1.5 text-red-400 placeholder-red-900 focus:outline-none focus:border-red-500 flex-grow md:w-56 tracking-widest text-[10px] md:text-xs uppercase shadow-[inset_0_0_10px_rgba(0,0,0,0.8)]"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  onSetManualIp(e.currentTarget.value);
-                }
-              }}
-              id="manual_ip_input"
-            />
-            <button 
-              onClick={() => {
-                const el = document.getElementById('manual_ip_input') as HTMLInputElement;
-                if (el) onSetManualIp(el.value);
-              }}
-              className="text-red-500 hover:text-white border border-red-900/80 hover:border-red-500 px-3 py-1.5 transition-colors focus:outline-none tracking-widest font-bold text-[10px] md:text-xs bg-black whitespace-nowrap"
-            >
-              CONNECT
-            </button>
+          <div className="flex flex-col gap-1 w-full md:w-auto relative z-10">
+            <div className="flex items-center gap-2">
+              <input 
+                type="text" 
+                placeholder="IP OVERRIDE (e.g. 192.168.1.5)"
+                className="bg-black border border-red-900/80 px-3 py-1.5 text-red-400 placeholder-red-900 focus:outline-none focus:border-red-500 flex-grow md:w-56 tracking-widest text-[10px] md:text-xs uppercase shadow-[inset_0_0_10px_rgba(0,0,0,0.8)]"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    onSetManualIp(e.currentTarget.value);
+                  }
+                }}
+                id="manual_ip_input"
+              />
+              <button 
+                onClick={() => {
+                  const el = document.getElementById('manual_ip_input') as HTMLInputElement;
+                  if (el) onSetManualIp(el.value);
+                }}
+                className="text-red-500 hover:text-white border border-red-900/80 hover:border-red-500 px-3 py-1.5 transition-colors focus:outline-none tracking-widest font-bold text-[10px] md:text-xs bg-black whitespace-nowrap"
+              >
+                CONNECT
+              </button>
+            </div>
+            {manualIpError && (
+              <span className="text-red-500 text-[9px] uppercase tracking-widest">{manualIpError}</span>
+            )}
           </div>
         </div>
       )}
@@ -192,6 +209,16 @@ export const ActiveTasks: React.FC<ActiveTasksProps> = ({
           <div className="flex items-center gap-2">
             <span className="text-gray-600">LINK:</span>
             <span className="text-gray-400 select-all cursor-text">{networkIp ? `${networkIp}:4040` : 'N/A'}</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-gray-600">HOST:</span>
+            <span className="text-gray-400 select-all cursor-text">{authoritativeHostUrl || 'N/A'}</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-gray-600">JOIN:</span>
+            <span className="text-gray-400 select-all cursor-text">{joinIpUrl || 'N/A'}</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -287,7 +314,7 @@ export const ActiveTasks: React.FC<ActiveTasksProps> = ({
                  <div className="absolute -top-3 left-4 md:left-6 bg-[#050505] px-3 flex items-center gap-2 border border-brand/30">
                     <div className="w-2 h-2 bg-brand animate-pulse shadow-[0_0_8px_#ff0033]"></div>
                     <span className="text-[10px] md:text-xs tracking-[0.3em] uppercase font-mono font-bold text-brand drop-shadow-[0_0_5px_#ff0033]">
-                      Primary Directives [LOCAL]
+                      Primary Directives
                     </span>
                  </div>
                  

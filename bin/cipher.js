@@ -11,11 +11,21 @@ const {
   getDaemonState,
   setDaemonState,
   clearDaemonState,
+  getJoinState,
+  setJoinState,
+  clearJoinState,
   getMcpState,
   clearMcpState,
   cleanupRuntimeArtifacts,
   isPidRunning,
 } = require('../utils/runtimeState');
+const { printBanner, shouldPrintBanner } = require('../utils/banner');
+const {
+  getLocalIpv4s,
+  normalizeJoinTarget,
+  probeHost,
+  findLanHost,
+} = require('../utils/discoveryClient');
 
 const PROJECT_ROOT = path.join(__dirname, '..');
 const SERVER_PATH = path.join(PROJECT_ROOT, 'server.js');
@@ -30,6 +40,43 @@ const HEALTH_URL = `${LOCAL_URL}/healthz`;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function parseGlobalFlags(rawArgs = []) {
+  const quiet = rawArgs.includes('--quiet');
+  const args = rawArgs.filter((arg) => arg !== '--quiet');
+  return { quiet, args };
+}
+
+function parseUpOptions(args = []) {
+  let forceHost = false;
+  let joinTarget = null;
+
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i];
+    if (arg === '--host') {
+      forceHost = true;
+      continue;
+    }
+
+    if (arg === '--join') {
+      const value = args[i + 1];
+      if (!value || value.startsWith('--')) {
+        throw new Error('Missing value for --join. Example: cipher up --join 192.168.1.10');
+      }
+      joinTarget = value;
+      i += 1;
+      continue;
+    }
+
+    throw new Error(`Unsupported flag for cipher up: ${arg}`);
+  }
+
+  if (forceHost && joinTarget) {
+    throw new Error('Cannot use --host and --join together');
+  }
+
+  return { forceHost, joinTarget };
 }
 
 function requestJson(method, rawUrl, payload, timeoutMs = 2500) {
@@ -144,6 +191,27 @@ async function mcpHealth(port = MCP_PORT) {
   } catch (_) {
     return false;
   }
+}
+
+async function resolveJoinTarget(rawTarget) {
+  const normalized = normalizeJoinTarget(rawTarget, PORT);
+  if (!normalized) {
+    return { ok: false, error: 'Invalid join target URL' };
+  }
+  return probeHost(normalized, { timeoutMs: 1500, port: PORT });
+}
+
+async function resolveDefaultDaemonUrl() {
+  const local = await daemonHealth();
+  if (local.ok) return LOCAL_URL;
+
+  const joinState = getJoinState();
+  if (joinState && joinState.targetUrl) {
+    const remote = await resolveJoinTarget(joinState.targetUrl);
+    if (remote.ok) return remote.baseUrl;
+  }
+
+  return LOCAL_URL;
 }
 
 async function openUrl(url) {
@@ -291,27 +359,78 @@ async function waitForDaemonHealthy(timeoutMs = 12000) {
   return false;
 }
 
-async function openApp() {
+async function openApp(url = LOCAL_URL) {
   try {
-    await openUrl(LOCAL_URL);
+    await openUrl(url);
     return true;
   } catch (_) {
-    console.log(`Open ${LOCAL_URL} manually (fallback alias: ${MDNS_URL}).`);
+    if (url === LOCAL_URL) {
+      console.log(`Open ${LOCAL_URL} manually (fallback alias: ${MDNS_URL}).`);
+    } else {
+      console.log(`Open ${url} manually.`);
+    }
     return false;
   }
 }
 
-async function commandUp() {
+async function commandUp(args = []) {
+  const options = parseUpOptions(args);
+
+  console.log('[CIPHER] up: stopping previous local runtime...');
+  await stopMcp();
+  await stopDaemon({ reason: 'CIPHER_UP_RESTART', clean: true });
+  clearJoinState();
+
+  if (options.joinTarget) {
+    const manualJoin = await resolveJoinTarget(options.joinTarget);
+    if (!manualJoin.ok) {
+      console.error(`[CIPHER] failed to join target: ${manualJoin.error || 'unreachable host'}`);
+      process.exit(1);
+    }
+
+    setJoinState({
+      mode: 'JOIN',
+      targetUrl: manualJoin.baseUrl,
+      source: 'manual',
+      joinedAt: Date.now(),
+      discovery: manualJoin.discovery || null,
+    });
+
+    console.log(`[CIPHER] joined authoritative host at ${manualJoin.baseUrl}`);
+    await openApp(manualJoin.baseUrl);
+    return;
+  }
+
+  if (!options.forceHost) {
+    console.log('[CIPHER] up: probing LAN for authoritative host...');
+    const remoteHost = await findLanHost({
+      domain: 'cipher.local',
+      port: PORT,
+      timeoutMs: 1500,
+      excludeIps: getLocalIpv4s(),
+    });
+
+    if (remoteHost && remoteHost.baseUrl) {
+      setJoinState({
+        mode: 'JOIN',
+        targetUrl: remoteHost.baseUrl,
+        source: remoteHost.source || 'lan',
+        joinedAt: Date.now(),
+        discovery: remoteHost.discovery || null,
+      });
+
+      console.log(`[CIPHER] authoritative host discovered at ${remoteHost.baseUrl}`);
+      await openApp(remoteHost.baseUrl);
+      return;
+    }
+  }
+
   if (!fs.existsSync(DIST_INDEX_PATH)) {
     console.error(buildMissingArtifactsError());
     process.exit(1);
   }
 
-  console.log('[CIPHER] up: stopping previous runtime...');
-  await stopMcp();
-  await stopDaemon({ reason: 'CIPHER_UP_RESTART', clean: true });
-
-  console.log('[CIPHER] up: starting fresh daemon...');
+  console.log('[CIPHER] up: starting fresh daemon in HOST mode...');
   spawnDaemonDetached();
   const healthy = await waitForDaemonHealthy();
   if (!healthy) {
@@ -323,15 +442,19 @@ async function commandUp() {
     process.exit(1);
   }
 
+  clearJoinState();
   console.log(`[CIPHER] daemon ready at ${LOCAL_URL}`);
-  await openApp();
+  await openApp(LOCAL_URL);
 }
 
 async function commandStop() {
   console.log('[CIPHER] stop: terminating daemon and MCP runtime...');
   const mcpStopped = await stopMcp();
   const daemon = await stopDaemon({ reason: 'CLI_STOP', clean: true });
-  if (!daemon.hadProcess && !mcpStopped) {
+  const hadJoinState = Boolean(getJoinState());
+  clearJoinState();
+
+  if (!daemon.hadProcess && !mcpStopped && !hadJoinState) {
     console.log('[CIPHER] no active runtime found.');
     return;
   }
@@ -340,17 +463,36 @@ async function commandStop() {
 
 async function commandStatus() {
   const state = getDaemonState();
+  const joinState = getJoinState();
   const mcpState = getMcpState();
   const health = await daemonHealth();
   const mcpRunning = await mcpHealth(mcpState?.port || MCP_PORT);
 
+  let mode = 'DOWN';
+  let target = null;
+
   if (health.ok) {
+    mode = 'HOST';
+    target = LOCAL_URL;
+    clearJoinState();
     console.log(`[CIPHER] daemon: UP @ ${LOCAL_URL}`);
     console.log(`[CIPHER] pid: ${health.response?.data?.pid || state?.pid || 'unknown'}`);
-    console.log(`[CIPHER] mode: ${health.response?.data?.mode || 'UNKNOWN'}`);
+  } else if (joinState && joinState.targetUrl) {
+    const remote = await resolveJoinTarget(joinState.targetUrl);
+    if (remote.ok) {
+      mode = 'JOIN';
+      target = remote.baseUrl;
+      console.log(`[CIPHER] daemon: REMOTE @ ${remote.baseUrl}`);
+    } else {
+      clearJoinState();
+      console.log('[CIPHER] daemon: DOWN');
+    }
   } else {
     console.log('[CIPHER] daemon: DOWN');
   }
+
+  console.log(`[CIPHER] mode: ${mode}`);
+  if (target) console.log(`[CIPHER] active target: ${target}`);
 
   if (mcpRunning) {
     console.log(`[CIPHER] mcp: UP @ http://127.0.0.1:${mcpState?.port || MCP_PORT}`);
@@ -360,17 +502,28 @@ async function commandStatus() {
   }
 
   console.log(`[CIPHER] runtime dir: ${RUNTIME_PATHS.dir}`);
-  if (!health.ok) process.exitCode = 1;
+  if (mode === 'DOWN') process.exitCode = 1;
 }
 
 async function commandOpen() {
-  const healthy = await daemonHealth();
-  if (!healthy.ok) {
-    console.log('[CIPHER] daemon not healthy; running `cipher up` first...');
-    await commandUp();
+  const localHealth = await daemonHealth();
+  if (localHealth.ok) {
+    await openApp(LOCAL_URL);
     return;
   }
-  await openApp();
+
+  const joinState = getJoinState();
+  if (joinState && joinState.targetUrl) {
+    const remote = await resolveJoinTarget(joinState.targetUrl);
+    if (remote.ok) {
+      await openApp(remote.baseUrl);
+      return;
+    }
+    clearJoinState();
+  }
+
+  console.log('[CIPHER] no active target found; running `cipher up`...');
+  await commandUp([]);
 }
 
 function parsePortFlag(args, defaultPort) {
@@ -391,8 +544,7 @@ async function commandMcp(args) {
 
   const foreground = args.includes('--foreground');
   const port = parsePortFlag(args, MCP_PORT);
-  const daemonUrl =
-    process.env.CIPHER_DAEMON_URL || `${LOCAL_URL}`;
+  const daemonUrl = process.env.CIPHER_DAEMON_URL || (await resolveDefaultDaemonUrl());
 
   await stopMcp();
 
@@ -424,7 +576,7 @@ async function commandMcp(args) {
   });
   child.unref();
 
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 20; i += 1) {
     const ok = await mcpHealth(port);
     if (ok) {
       console.log(`[CIPHER] MCP ready @ http://127.0.0.1:${port}`);
@@ -441,22 +593,32 @@ function printHelp() {
 CIPHER.SYS CLI
 
 Usage:
-  cipher up                 Stop old instance, clean runtime, start fresh daemon, open app
-  cipher stop               Stop daemon and clean runtime artifacts
-  cipher status             Show daemon/MCP status
-  cipher open               Open browser app (starts daemon if needed)
-  cipher mcp start          Start MCP server in background
+  cipher up [--host] [--join <ip-or-url>]  Stop local runtime, then auto-join LAN host or start fresh daemon
+  cipher stop                               Stop daemon and clean runtime artifacts
+  cipher status                             Show HOST/JOIN daemon and MCP status
+  cipher open                               Open active target (bootstraps if needed)
+  cipher mcp start                          Start MCP server in background
   cipher mcp start --foreground
+
+Flags:
+  --quiet                                   Suppress ASCII banner
+  CIPHER_NO_BANNER=1                        Suppress ASCII banner via env
 `);
 }
 
 async function main() {
-  const args = process.argv.slice(2);
+  const rawArgs = process.argv.slice(2);
+  const { args } = parseGlobalFlags(rawArgs);
+
+  if (shouldPrintBanner(rawArgs, process.env)) {
+    printBanner();
+  }
+
   const command = args[0] || 'up';
 
   try {
     if (command === 'up' || command === 'start') {
-      await commandUp();
+      await commandUp(args.slice(1));
       return;
     }
     if (command === 'stop') {
@@ -489,4 +651,12 @@ async function main() {
   }
 }
 
-main();
+if (require.main === module) {
+  main();
+}
+
+module.exports = {
+  parseGlobalFlags,
+  parseUpOptions,
+  buildMissingArtifactsError,
+};

@@ -20,6 +20,7 @@ const {
 
 const PORT = process.env.PORT || 4040;
 const DOMAIN = 'cipher.local';
+const LOCAL_URL = `http://localhost:${PORT}`;
 
 const app = express();
 const server = http.createServer(app);
@@ -37,8 +38,27 @@ function getPrimaryIPv4() {
 }
 
 let mdns;
+const mdnsRuntime = {
+  status: 'disabled',
+  error: null,
+  updatedAt: Date.now(),
+};
+
+function setMdnsRuntime(status, error = null) {
+  mdnsRuntime.status = status;
+  mdnsRuntime.error = error;
+  mdnsRuntime.updatedAt = Date.now();
+}
+
 try {
   mdns = require('multicast-dns')();
+  setMdnsRuntime('active', null);
+
+  mdns.on('error', (err) => {
+    const message = err instanceof Error ? err.message : String(err);
+    setMdnsRuntime('degraded', message);
+  });
+
   mdns.on('query', (query) => {
     const questions = Array.isArray(query.questions) ? query.questions : [];
     const hasDomainQuestion = questions.some((q) => {
@@ -50,10 +70,16 @@ try {
     if (!hasDomainQuestion) return;
 
     const ip = getPrimaryIPv4();
-    mdns.respond({ answers: [{ name: DOMAIN, type: 'A', ttl: 300, data: ip }] });
+    try {
+      mdns.respond({ answers: [{ name: DOMAIN, type: 'A', ttl: 300, data: ip }] });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setMdnsRuntime('degraded', message);
+    }
   });
 } catch (e) {
-  // mDNS not available
+  const message = e instanceof Error ? e.message : String(e);
+  setMdnsRuntime('disabled', message);
 }
 
 // SYNDICATE PROTOCOL STATE EXPANSION
@@ -104,6 +130,15 @@ function scheduleShutdown(reason = 'HOST_TERMINATED') {
   if (shuttingDown) return;
   shuttingDown = true;
   io.emit('host_terminating', { reason, timestamp: Date.now() });
+
+  if (mdns && typeof mdns.destroy === 'function') {
+    try {
+      mdns.destroy();
+    } catch (_) {
+      // no-op
+    }
+  }
+
   setTimeout(() => {
     io.close(() => {
       server.close(() => {
@@ -119,15 +154,26 @@ function scheduleShutdown(reason = 'HOST_TERMINATED') {
 }
 
 function buildDiscoveryPayload() {
+  const ip = getPrimaryIPv4();
   return {
     domain: DOMAIN,
     port: Number(PORT),
-    networkIp: getPrimaryIPv4(),
+    networkIp: ip,
     activeNodes: io.engine.clientsCount,
     mode: dbState.mode,
     runtimeDir: RUNTIME_PATHS.dir,
     pid: process.pid,
     startedAt,
+    join: {
+      localhost: LOCAL_URL,
+      mdns: `http://${DOMAIN}:${PORT}`,
+      ip: `http://${ip}:${PORT}`,
+    },
+    mdns: {
+      status: mdnsRuntime.status,
+      error: mdnsRuntime.error,
+      updatedAt: mdnsRuntime.updatedAt,
+    },
   };
 }
 
@@ -534,8 +580,8 @@ io.on('connection', (socket) => {
       calledTasks.clear();
       socket.broadcast.emit('execute_kill', reason);
     } else {
-      // Local lone wolf burn isolates their own tasks without destroying the server network
-      dbState.tasks = dbState.tasks.filter(t => t.owner !== opId);
+      // Lone wolf burn clears non-syndicate tasks on the authoritative host timeline.
+      dbState.tasks = dbState.tasks.filter(t => t.syndicate);
     }
     emitStateSync();
   });
@@ -547,7 +593,16 @@ io.on('connection', (socket) => {
 
 process.on('SIGTERM', () => scheduleShutdown('SIGTERM'));
 process.on('SIGINT', () => scheduleShutdown('SIGINT'));
-process.on('exit', () => clearDaemonState());
+process.on('exit', () => {
+  if (mdns && typeof mdns.destroy === 'function') {
+    try {
+      mdns.destroy();
+    } catch (_) {
+      // no-op
+    }
+  }
+  clearDaemonState();
+});
 
 server.listen(PORT, () => {
   startedAt = Date.now();

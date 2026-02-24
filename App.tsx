@@ -24,6 +24,10 @@ const App: React.FC = () => {
     isConnected,
     activeNodes,
     networkIp,
+    authoritativeHostUrl,
+    joinIpUrl,
+    manualIpError,
+    mutationsLocked,
     coprocessor,
     destructReason,
     handlerMessage,
@@ -139,6 +143,10 @@ const App: React.FC = () => {
               isConnected={isConnected}
               activeNodes={activeNodes}
               networkIp={networkIp}
+              authoritativeHostUrl={authoritativeHostUrl}
+              joinIpUrl={joinIpUrl}
+              manualIpError={manualIpError}
+              mutationsLocked={mutationsLocked}
               coprocessor={coprocessor}
               handlerMessage={handlerMessage}
               isDeployed={isDeployed}
