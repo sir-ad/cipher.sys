@@ -125,7 +125,6 @@ cipher --quiet up                    # suppress launch banner
 - [Boot Sequence](docs/briefing/boot-sequence.md)
 - [System Architecture](docs/architecture/system-architecture.md)
 - [Runtime Protocols](docs/architecture/protocols.md)
-- [Syndicate PRD](docs/multiplayer/prd-syndicate.md)
 
 ## Release Tracks
 GitHub and npm releases are intentionally separate workflows.
