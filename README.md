@@ -1,4 +1,5 @@
-# CIPHER.SYS // TERMINAL
+# CIPHER.SYS // TERMINAL 
+##[Known bug - CIPHER.LOCAL:4040 -> WORKS ONLY ON APPLE INFRA (iOS/mac) ; OTHER PLATFORMS - USE IP / mDNS - issues / pushing next rel soon ; to resolve it]
 
 > The to-do app that wants you gone.
 
