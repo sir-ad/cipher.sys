@@ -42,7 +42,6 @@ nav:
     - Boot Sequence: briefing/boot-sequence.md
     - Rules of Engagement: briefing/rules.md
   - SYNDICATE PROTOCOL (MULTIPLAYER):
-    - Vision & PRD: multiplayer/prd-syndicate.md
     - Squad Mechanics: multiplayer/rules-of-engagement.md
     - UI & User Flows: multiplayer/user-flows.md
     - Network Topology: multiplayer/network-topology.md
@@ -51,5 +50,3 @@ nav:
     - Runtime Protocols: architecture/protocols.md
     - Host Daemon: architecture/daemon.md
     - AI Interrogation: architecture/ai-handler.md
-  - PUBLIC UPLINK:
-    - Website PRD: website-prd.md
