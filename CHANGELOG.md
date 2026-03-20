@@ -5,9 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [5.0.2] - 2026-03-20
 
-### Added
+### Security
+- **Repository Declassification**: Successfully purged historical internal PRDs and sensitive development data from the repository using BFG Repo-Cleaner.
+- **Git History Rewrite**: Unified all branches (`main`, `gh-pages`, `ad/*`) into a clean, public-ready history.
+
+### Changed
+- `README.md` and `mkdocs.yml` updated to remove internal documentation links.
+
+## [5.0.1] - 2026-03-19
 - Deterministic runtime lifecycle commands: `cipher up`, `cipher stop`, `cipher status`, `cipher open`, and `cipher mcp start`.
 - Auto-clean bootstrap flow (stop old runtime, clean artifacts, start fresh daemon, wait on health, open browser).
 - Daemon health and control interfaces (`/healthz`, `/api/discovery`, `/api/state`, `/api/tasks`, `/api/shutdown`).
